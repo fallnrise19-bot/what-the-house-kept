@@ -1,0 +1,298 @@
+* { box-sizing: border-box; }
+
+:root {
+  color-scheme: dark;
+  --bg: #0f0e0c;
+  --panel: #151411;
+  --panel-2: #1a1815;
+  --border: #302d28;
+  --text: #e6dfd3;
+  --muted: #8a857c;
+  --faint: #5e5a53;
+  --soft: #c8c1b5;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.025), transparent 34rem),
+    var(--bg);
+}
+
+.game {
+  width: min(100%, 540px);
+  min-height: 100vh;
+  background: var(--panel);
+  border-left: 1px solid #24211d;
+  border-right: 1px solid #24211d;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: calc(18px + env(safe-area-inset-top)) 22px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.game-title,
+.room-name,
+.chapter,
+.bottom-nav,
+.command-bar,
+.parser-note,
+.drawer h2 {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.game-title {
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: var(--faint);
+  margin-bottom: 5px;
+}
+
+.room-name {
+  font-size: 11px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #aaa49a;
+}
+
+.chapter {
+  font-size: 10px;
+  color: #68645d;
+  white-space: nowrap;
+}
+
+.scene {
+  flex: 1;
+  padding: 26px 24px 32px;
+}
+
+.scene p {
+  margin: 0 0 18px;
+  font-size: 17px;
+  line-height: 1.76;
+  letter-spacing: .002em;
+}
+
+.scene p:last-child { margin-bottom: 0; }
+
+.scene .command-echo {
+  margin-top: 28px;
+  margin-bottom: 9px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: #706b63;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.scene .response {
+  color: var(--soft);
+}
+
+.scene .system-note {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.command-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px 8px;
+  border-top: 1px solid var(--border);
+  background: #11100e;
+}
+
+.command-bar input {
+  min-width: 0;
+  flex: 1;
+  height: 50px;
+  border: 1px solid #403c35;
+  border-radius: 4px;
+  background: #1b1a17;
+  color: #eee7dc;
+  padding: 0 13px;
+  font-size: 16px;
+  outline: none;
+}
+
+.command-bar input:focus {
+  border-color: #777166;
+}
+
+.command-bar input::placeholder {
+  color: #6e6960;
+}
+
+.submit-button {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #403c35;
+  border-radius: 4px;
+  background: #24211d;
+  color: #d9d1c5;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.parser-note {
+  background: #11100e;
+  color: #5f5a53;
+  font-size: 10px;
+  line-height: 1.5;
+  padding: 0 19px 12px;
+}
+
+.bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border);
+  background: #0f0e0c;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav button {
+  min-height: 58px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: #89847b;
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.bottom-nav button:last-child {
+  border-right: 0;
+}
+
+.bottom-nav button.active {
+  background: #191714;
+  color: #ddd5c8;
+}
+
+.drawer {
+  display: none;
+  border-top: 1px solid var(--border);
+  background: var(--panel-2);
+  padding: 18px 20px 22px;
+}
+
+.drawer.open {
+  display: block;
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 14px;
+}
+
+.drawer h2 {
+  margin: 0;
+  color: #aaa49a;
+  font-size: 11px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: #8e887f;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.inventory-list,
+.journal-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.inventory-list li,
+.journal-list li {
+  margin-bottom: 9px;
+  color: #c7c0b4;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: #c7c0b4;
+  font-size: 13px;
+}
+
+.setting-row button,
+.reset-button {
+  min-width: 70px;
+  min-height: 42px;
+  border: 1px solid #47423a;
+  border-radius: 3px;
+  background: #24211d;
+  color: #d8d0c4;
+  cursor: pointer;
+}
+
+.reset-button {
+  width: 100%;
+  margin-top: 16px;
+}
+
+@media (max-width: 360px) {
+  .scene { padding: 22px 19px 26px; }
+  .scene p { font-size: 16px; line-height: 1.7; }
+  .topbar { padding-left: 18px; padding-right: 18px; }
+}
+
+.room-panel-description p {
+  margin: 0 0 14px;
+  color: #c9c2b7;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.room-panel-description p:last-child {
+  margin-bottom: 0;
+}
