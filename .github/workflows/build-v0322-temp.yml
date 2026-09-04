@@ -50,7 +50,7 @@ jobs:
           grep -F 'two plausible cabinets' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'Which brush?' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'jennifer brush' android-exact-v0317/app/src/main/assets/game/game.js
-          grep -F 'check behind stool' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F '"behind stool"' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'use screwdriver' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'not putting an electrical appliance into water' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'Mira was abducted as a child and spent years being passed through a system built to train, condition, and sell people.' android-exact-v0317/app/src/main/assets/game/game.js
