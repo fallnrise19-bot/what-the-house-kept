@@ -1,5 +1,5 @@
-# What the House Kept starter
+# what-the-house-kept
 
-Current complete editable prototype source: v0.3.6.
+Current live prototype: v0.3.7
 
-The live GitHub Pages site is packaged from this complete game source. Do not edit the hosted runtime chunks as game logic.
+Bedroom parser/state regression pass and floor-plan panel.
