@@ -1,0 +1,42 @@
+name: Import v0.3.12 audio asset
+
+on:
+  push:
+    branches:
+      - publish-v0.3.12-bedroom-music
+    paths:
+      - .github/workflows/import-v0312-audio.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import-audio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: publish-v0.3.12-bedroom-music
+          fetch-depth: 0
+
+      - name: Download and verify music
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audio/web
+          curl --fail --location --retry 3 --output audio/web/one-last-morning.ogg \
+            "https://wthk-v0312-audio-3rcldn11e-roughcut.vercel.app/one-last-morning.ogg"
+          test "$(stat -c '%s' audio/web/one-last-morning.ogg)" = "225982"
+          echo "8bb18d2f49e00d4c11d2a16116c03858148e4d438daa8830a5c61fe03a521231  audio/web/one-last-morning.ogg" | sha256sum --check --strict
+
+      - name: Commit verified asset and remove importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/import-v0312-audio.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio/web/one-last-morning.ogg .github/workflows/import-v0312-audio.yml
+          git commit -m "Add verified One Last Morning web audio"
+          git push origin HEAD:publish-v0.3.12-bedroom-music
