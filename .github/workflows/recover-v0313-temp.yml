@@ -1,0 +1,93 @@
+name: Recover v0.3.13 source temporarily
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/recover-v0313-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-door-slam-v0313
+          fetch-depth: 0
+
+      - name: Reconstruct exact v0.3.13 game source
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip
+
+          parts = [
+              'runtime/v0.3.10/game.part1.b64',
+              'runtime/v0.3.10/game.part2.b64',
+              'runtime/v0.3.10/game.part3.b64',
+              'runtime/v0.3.10/game.part4.b64',
+              'runtime/v0.3.10/game.part5a.b64',
+              'runtime/v0.3.10/game.part5b.b64',
+              'runtime/v0.3.10/game.part6a.b64',
+              'runtime/v0.3.10/game.part6b.b64',
+              'runtime/v0.3.10/game.part7.b64',
+          ]
+          packed = base64.b64decode(''.join(Path(p).read_text().strip() for p in parts))
+          source = gzip.decompress(packed).decode('utf-8')
+          source = source.replace('const BUILD_VERSION = "v0.3.10";', 'const BUILD_VERSION = "v0.3.13";')
+
+          old_tail = '''        </section>
+      </div>
+      <p class="floorplan-caption">The far room is marked <strong>Storage</strong>. Nothing on the plan identifies it as anyone's bedroom.</p>'''
+          new_tail = '''        </section>
+        <section class="floorplan-floor">
+          <h3>Basement</h3>
+          <div class="floorplan-room"><b>Utility / Laundry</b><span>12 × 14</span></div>
+          <div class="floorplan-room"><b>Workshop</b><span>14 × 14</span></div>
+          <div class="floorplan-room"><b>Storage</b><span>26 × 18</span></div>
+        </section>
+        <section class="floorplan-floor">
+          <h3>Attic</h3>
+          <div class="floorplan-room"><b>Office</b><span>14 × 17</span></div>
+          <div class="floorplan-room"><b>Attic Storage</b><span>14 × 16</span></div>
+          <div class="floorplan-room"><b>Box / Half Bath</b><span>8 × 10</span></div>
+          <div class="floorplan-room"><b>Eaves</b><span>unmeasured</span></div>
+        </section>
+      </div>'''
+          if old_tail not in source:
+              raise SystemExit('Floor-plan v0.3.13 patch target not found')
+          source = source.replace(old_tail, new_tail, 1)
+
+          out = Path('recovered')
+          out.mkdir(exist_ok=True)
+          (out / 'game-v0313.js').write_text(source, encoding='utf-8')
+          needles = ['upstairs hall', 'hallway', 'windowOpen', 'bedroomWindow', 'bedroomDoor', 'currentRoom', 'room =']
+          lines = source.splitlines()
+          snippets = []
+          for i, line in enumerate(lines):
+              if any(n.lower() in line.lower() for n in needles):
+                  lo, hi = max(0, i-5), min(len(lines), i+7)
+                  snippets.append(f'--- lines {lo+1}-{hi} ---\n' + '\n'.join(f'{j+1}: {lines[j]}' for j in range(lo, hi)))
+          (out / 'transition-snippets.txt').write_text('\n\n'.join(snippets), encoding='utf-8')
+          print(f'Recovered {len(source):,} bytes')
+          PY
+
+      - name: Commit recovered source to temporary branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add recovered/game-v0313.js recovered/transition-snippets.txt
+          git commit -m "Recover exact v0.3.13 game source"
+          git push origin HEAD:android-door-slam-v0313
+
+      - name: Upload recovery artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-v0313-source
+          path: recovered/
