@@ -1,4 +1,4 @@
-name: Build Android v0.3.15 no music
+name: Build exact Android v0.3.16
 
 on:
   push:
@@ -33,40 +33,47 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Generate no-music Android project
-        run: python3 tools/build_android_no_music.py
-
-      - name: Verify music is absent and SFX remains
+      - name: Recover exact v0.3.15 and generate v0.3.16
         run: |
-          test ! -f android_project/app/src/main/assets/game/music-v0313.js
-          test ! -f android_project/app/src/main/assets/game/audio/one-last-morning-loop.mp3
-          test -f android_project/app/src/main/assets/game/audio/bedroom-door-slam.mp3
-          ! grep -R "one-last-morning\|music-v0313" android_project/app/src/main/assets/game
-          node --check android_project/app/src/main/assets/game/game.js
-          node --check android_project/app/src/main/assets/game/sfx-v0314.js
-          grep -F 'const DOOR_SLAM_VOLUME = 0.05;' android_project/app/src/main/assets/game/sfx-v0314.js
+          python3 tools/recover_exact_v0315.py
+          python3 tools/build_exact_v0316.py
+
+      - name: Verify exact 3.15 interactions, no music, and door SFX
+        run: |
+          node --check android-exact-v0316/app/src/main/assets/game/game.js
+          node --check android-exact-v0316/app/src/main/assets/game/sfx-v0316.js
+          grep -F 'emptyFrameExamined: false' android-exact-v0316/app/src/main/assets/game/game.js
+          grep -F 'floorPlanBedroomCompared: false' android-exact-v0316/app/src/main/assets/game/game.js
+          grep -F 'hallLightSwitchChecked: false' android-exact-v0316/app/src/main/assets/game/game.js
+          grep -F 'const doorSlams = f.windowOpen;' android-exact-v0316/app/src/main/assets/game/game.js
+          grep -F 'window.__WTHK_SFX__?.playDoorSlam();' android-exact-v0316/app/src/main/assets/game/game.js
+          grep -F 'const DOOR_SLAM_VOLUME = 0.05;' android-exact-v0316/app/src/main/assets/game/sfx-v0316.js
+          test -f android-exact-v0316/app/src/main/assets/game/audio/bedroom-door-slam.mp3
+          ! find android-exact-v0316/app/src/main/assets/game -type f | grep -Ei 'one-last-morning|music-v'
+          ! grep -R -Ei 'one-last-morning|music-v0313' android-exact-v0316/app/src/main/assets/game
 
       - name: Generate Gradle wrapper
-        run: gradle -p android_project wrapper --gradle-version 8.11.1
+        run: gradle -p android-exact-v0316 wrapper --gradle-version 8.11.1
 
       - name: Build debug APK
-        working-directory: android_project
+        working-directory: android-exact-v0316
         run: ./gradlew :app:assembleDebug --stacktrace
 
-      - name: Package verified files
+      - name: Package and inspect APK
         run: |
           mkdir -p deliverables
-          cp android_project/app/build/outputs/apk/debug/app-debug.apk deliverables/WhatTheHouseKept-v0.3.15-NO-MUSIC-door-slam-debug.apk
-          (cd android_project && zip -qr ../deliverables/WhatTheHouseKept-AndroidStudio-v0.3.15-NO-MUSIC-DOOR-SLAM.zip . -x '.gradle/*' 'app/build/*' 'build/*')
-          unzip -l deliverables/WhatTheHouseKept-v0.3.15-NO-MUSIC-door-slam-debug.apk > deliverables/apk-contents.txt
+          cp android-exact-v0316/app/build/outputs/apk/debug/app-debug.apk deliverables/WhatTheHouseKept-v0.3.16-NO-MUSIC-door-slam-debug.apk
+          (cd android-exact-v0316 && zip -qr ../deliverables/WhatTheHouseKept-AndroidStudio-v0.3.16-NO-MUSIC-DOOR-SLAM.zip . -x '.gradle/*' 'app/build/*' 'build/*')
+          unzip -l deliverables/WhatTheHouseKept-v0.3.16-NO-MUSIC-door-slam-debug.apk > deliverables/apk-contents.txt
           grep -F 'assets/game/audio/bedroom-door-slam.mp3' deliverables/apk-contents.txt
-          if grep -E 'one-last-morning|music-v0313' deliverables/apk-contents.txt; then echo 'Music unexpectedly bundled'; exit 1; fi
+          grep -F 'assets/game/sfx-v0316.js' deliverables/apk-contents.txt
+          if grep -Ei 'one-last-morning|music-v0313' deliverables/apk-contents.txt; then echo 'Music unexpectedly bundled'; exit 1; fi
           sha256sum deliverables/*.apk deliverables/*.zip > deliverables/SHA256SUMS.txt
 
-      - name: Upload corrected build
+      - name: Upload exact corrected build
         uses: actions/upload-artifact@v4
         with:
-          name: WhatTheHouseKept-v0.3.15-no-music
+          name: WhatTheHouseKept-v0.3.16-exact-no-music
           path: deliverables/
           if-no-files-found: error
           retention-days: 30
