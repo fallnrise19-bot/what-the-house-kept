@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           mkdir -p audio/web
           curl --fail --location --retry 3 --output audio/web/one-last-morning.ogg \
-            "https://wthk-v0312-audio-3rcldn11e-roughcut.vercel.app/one-last-morning.ogg"
+            "https://wthk-v0312-audio-public-roughcut.vercel.app/one-last-morning.ogg"
           test "$(stat -c '%s' audio/web/one-last-morning.ogg)" = "225982"
           echo "8bb18d2f49e00d4c11d2a16116c03858148e4d438daa8830a5c61fe03a521231  audio/web/one-last-morning.ogg" | sha256sum --check --strict
 
