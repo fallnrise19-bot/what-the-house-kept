@@ -1,5 +1,5 @@
 (async () => {
-  const files = Array.from({ length: 9 }, (_, i) =>
+  const files = Array.from({ length: 24 }, (_, i) =>
     `runtime/game.gz.part${String(i + 1).padStart(2, "0")}.b64`
   );
 
