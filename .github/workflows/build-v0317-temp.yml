@@ -43,8 +43,8 @@ jobs:
           test -f android-exact-v0317/app/src/main/assets/game/audio/bedroom-door-slam.mp3
           node --check android-exact-v0317/app/src/main/assets/game/game.js
           node --check android-exact-v0317/app/src/main/assets/game/sfx-v0317.js
-          grep -F '"Jesus Christ."' android-exact-v0317/app/src/main/assets/game/game.js
-          grep -F '"Right. Window."' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F 'Jesus Christ.' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F 'Right. Window.' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'emptyFrameBackChecked: false' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'hallBulbChecked: false' android-exact-v0317/app/src/main/assets/game/game.js
           ! grep -R "one-last-morning\|music-v0313" android-exact-v0317/app/src/main/assets/game
