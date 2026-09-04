@@ -1,3 +1,3 @@
 # what-the-house-kept
 
-Current live prototype: v0.3.4
+Current live prototype: v0.3.5
