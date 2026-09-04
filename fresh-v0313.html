@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#151411" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>What the House Kept</title>
+  <link rel="stylesheet" href="styles.css?v=fresh-v0313" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="game" aria-label="What the House Kept">
+      <header class="topbar">
+        <div>
+          <div class="game-title">WHAT THE HOUSE KEPT</div>
+          <div id="roomName" class="room-name">Master Bedroom</div>
+        </div>
+        <div class="chapter">Chapter One · v0.3.13</div>
+      </header>
+      <section id="scene" class="scene" aria-live="polite"><p class="system-note">Loading prototype…</p></section>
+      <form id="commandForm" class="command-bar">
+        <input id="commandInput" type="text" autocomplete="off" autocapitalize="sentences" spellcheck="true" aria-label="What do you do?" placeholder="What do you do?" />
+        <button class="submit-button" type="submit" aria-label="Do action">›</button>
+      </form>
+      <div id="parserNote" class="parser-note">Type naturally. The game understands more than one way of saying most things.</div>
+      <section id="drawer" class="drawer" aria-live="polite">
+        <div class="drawer-head"><h2 id="drawerTitle">Inventory</h2><button id="drawerClose" type="button" class="icon-button" aria-label="Close">×</button></div>
+        <div id="drawerBody"></div>
+      </section>
+      <nav class="bottom-nav" aria-label="Game controls">
+        <button type="button" data-panel="room">Room</button><button type="button" data-panel="inventory">Inventory</button><button type="button" data-panel="journal">Journal</button><button type="button" data-panel="settings">Settings</button>
+      </nav>
+    </section>
+  </main>
+  <script src="loader-v0313.js?v=fresh-v0313"></script>
+</body>
+</html>
