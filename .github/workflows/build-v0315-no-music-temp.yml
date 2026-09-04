@@ -1,0 +1,72 @@
+name: Build Android v0.3.15 no music
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-door-slam-v0313
+          fetch-depth: 1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 36 components
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle 8.11.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Generate no-music Android project
+        run: python3 tools/build_android_no_music.py
+
+      - name: Verify music is absent and SFX remains
+        run: |
+          test ! -f android_project/app/src/main/assets/game/music-v0313.js
+          test ! -f android_project/app/src/main/assets/game/audio/one-last-morning-loop.mp3
+          test -f android_project/app/src/main/assets/game/audio/bedroom-door-slam.mp3
+          ! grep -R "one-last-morning\|music-v0313" android_project/app/src/main/assets/game
+          node --check android_project/app/src/main/assets/game/game.js
+          node --check android_project/app/src/main/assets/game/sfx-v0314.js
+          grep -F 'const DOOR_SLAM_VOLUME = 0.05;' android_project/app/src/main/assets/game/sfx-v0314.js
+
+      - name: Generate Gradle wrapper
+        run: gradle -p android_project wrapper --gradle-version 8.11.1
+
+      - name: Build debug APK
+        working-directory: android_project
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Package verified files
+        run: |
+          mkdir -p deliverables
+          cp android_project/app/build/outputs/apk/debug/app-debug.apk deliverables/WhatTheHouseKept-v0.3.15-NO-MUSIC-door-slam-debug.apk
+          (cd android_project && zip -qr ../deliverables/WhatTheHouseKept-AndroidStudio-v0.3.15-NO-MUSIC-DOOR-SLAM.zip . -x '.gradle/*' 'app/build/*' 'build/*')
+          unzip -l deliverables/WhatTheHouseKept-v0.3.15-NO-MUSIC-door-slam-debug.apk > deliverables/apk-contents.txt
+          grep -F 'assets/game/audio/bedroom-door-slam.mp3' deliverables/apk-contents.txt
+          if grep -E 'one-last-morning|music-v0313' deliverables/apk-contents.txt; then echo 'Music unexpectedly bundled'; exit 1; fi
+          sha256sum deliverables/*.apk deliverables/*.zip > deliverables/SHA256SUMS.txt
+
+      - name: Upload corrected build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatTheHouseKept-v0.3.15-no-music
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 30
