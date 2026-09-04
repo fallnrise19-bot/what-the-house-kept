@@ -34,7 +34,19 @@ jobs:
           gradle-version: "8.11.1"
 
       - name: Generate exact v0.3.17 project
-        run: python3 tools/build_exact_v0317.py
+        run: |
+          python3 tools/build_exact_v0317.py
+          python3 - <<'PY'
+          from pathlib import Path
+          game = Path('android-exact-v0317/app/src/main/assets/game/game.js')
+          text = game.read_text(encoding='utf-8')
+          if 'Jesus Christ.' not in text:
+              raise SystemExit('Expected previous reaction not found')
+          game.write_text(text.replace('Jesus Christ.', 'Shit.', 1), encoding='utf-8')
+          readme = Path('android-exact-v0317/README-v0.3.17.txt')
+          r = readme.read_text(encoding='utf-8')
+          readme.write_text(r.replace('Jesus Christ.', 'Shit.', 1), encoding='utf-8')
+          PY
 
       - name: Verify no music, exact interactions, SFX, and spoken reaction
         run: |
@@ -43,8 +55,9 @@ jobs:
           test -f android-exact-v0317/app/src/main/assets/game/audio/bedroom-door-slam.mp3
           node --check android-exact-v0317/app/src/main/assets/game/game.js
           node --check android-exact-v0317/app/src/main/assets/game/sfx-v0317.js
-          grep -F 'Jesus Christ.' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F 'Shit.' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'Right. Window.' android-exact-v0317/app/src/main/assets/game/game.js
+          ! grep -F 'Jesus Christ.' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'emptyFrameBackChecked: false' android-exact-v0317/app/src/main/assets/game/game.js
           grep -F 'hallBulbChecked: false' android-exact-v0317/app/src/main/assets/game/game.js
           ! grep -R "one-last-morning\|music-v0313" android-exact-v0317/app/src/main/assets/game
