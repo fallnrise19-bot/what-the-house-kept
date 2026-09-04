@@ -1,0 +1,170 @@
+name: Build exact Android v0.3.18
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-door-slam-v0313
+          fetch-depth: 1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 36 components
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle 8.11.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Generate v0.3.18 from exact interaction build
+        run: |
+          python3 tools/build_exact_v0317.py
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('android-exact-v0317')
+          game = root / 'app/src/main/assets/game/game.js'
+          text = game.read_text(encoding='utf-8')
+
+          # The v0.3.17 generator's spoken-reaction version is corrected here first.
+          text = text.replace('Jesus Christ.', 'Shit.', 1)
+          text = text.replace(
+              'He looks back at the door, then toward the open bedroom window.',
+              'He turns sharply at the sound and stares at the closed door. A second later, the cause catches up with him.',
+              1,
+          )
+
+          # Make the hall room description reflect the bedroom door's real state.
+          old_hall_description = '''      <p>The upstairs landing outside the master bedroom is narrow and markedly darker than the bedroom. ${beam}</p>
+              <p>A ceiling light fixture hangs overhead. A wall switch sits beside the bedroom doorway. Neither shows obvious damage.</p>'''
+          new_hall_description = '''      <p>The upstairs landing outside the master bedroom is narrow and markedly darker than the bedroom. ${beam}</p>
+              <p>${f.bedroomDoorOpen ? "The master bedroom door stands open behind Thomas." : "The master bedroom door is closed behind Thomas."}</p>
+              <p>A ceiling light fixture hangs overhead. A wall switch sits beside the bedroom doorway. Neither shows obvious damage.</p>'''
+          if old_hall_description not in text:
+              raise SystemExit('Hall description anchor not found')
+          text = text.replace(old_hall_description, new_hall_description, 1)
+
+          # Add complete door/return handling while Thomas is actually in the hall.
+          hall_anchor = '''  function hallCommand(q, raw) {
+              const f = state.flags;
+
+              if (hasAny(q, ["look around", "look at hall", "look at hallway", "examine hall", "examine hallway", "check hallway", "describe hall"])) {'''
+          hall_replacement = '''  function hallCommand(q, raw) {
+              const f = state.flags;
+
+              if (hasAny(q, ["look at bedroom door", "look at master bedroom door", "look at door", "examine bedroom door", "examine door", "check bedroom door", "check door"])) {
+                say(f.bedroomDoorOpen ? "The master bedroom door is open." : "The master bedroom door is closed.", raw);
+                return;
+              }
+
+              if (hasAny(q, ["open bedroom door", "open master bedroom door", "open master door", "open door"])) {
+                if (f.bedroomDoorOpen) {
+                  say("The master bedroom door is already open.", raw);
+                } else {
+                  f.bedroomDoorOpen = true;
+                  saveState();
+                  say("Thomas opens the master bedroom door again. Cool air moves out from the room beyond.", raw);
+                }
+                return;
+              }
+
+              if (hasAny(q, ["close bedroom door", "close master bedroom door", "close master door", "close door", "shut bedroom door", "shut door"])) {
+                if (!f.bedroomDoorOpen) {
+                  say("The master bedroom door is already closed.", raw);
+                } else {
+                  f.bedroomDoorOpen = false;
+                  saveState();
+                  say("Thomas closes the master bedroom door.", raw);
+                }
+                return;
+              }
+
+              if (hasAny(q, ["go back", "go back to bedroom", "go back into bedroom", "return bedroom", "return to bedroom", "go bedroom", "go to bedroom", "go into bedroom", "enter bedroom", "enter master bedroom", "step into bedroom", "step back into bedroom", "back to bedroom", "leave hall", "leave hallway", "exit hall", "exit hallway"])) {
+                if (!f.bedroomDoorOpen) f.bedroomDoorOpen = true;
+                setRoom("bedroom");
+                return;
+              }
+
+              if (hasAny(q, ["look around", "look at hall", "look at hallway", "examine hall", "examine hallway", "check hallway", "describe hall"])) {'''
+          if hall_anchor not in text:
+              raise SystemExit('Hall command anchor not found')
+          text = text.replace(hall_anchor, hall_replacement, 1)
+
+          # Version bump without touching the shared save key.
+          text = text.replace('const BUILD_VERSION = "v0.3.17";', 'const BUILD_VERSION = "v0.3.18";', 1)
+          game.write_text(text, encoding='utf-8')
+
+          index = root / 'app/src/main/assets/game/index.html'
+          i = index.read_text(encoding='utf-8').replace('0.3.17', '0.3.18').replace('sfx-v0317.js', 'sfx-v0318.js')
+          index.write_text(i, encoding='utf-8')
+          old_sfx = root / 'app/src/main/assets/game/sfx-v0317.js'
+          old_sfx.rename(root / 'app/src/main/assets/game/sfx-v0318.js')
+
+          gradle = root / 'app/build.gradle'
+          g = gradle.read_text(encoding='utf-8').replace('versionCode 5', 'versionCode 6').replace('versionName "0.3.17"', 'versionName "0.3.18"')
+          gradle.write_text(g, encoding='utf-8')
+
+          old_readme = root / 'README-v0.3.17.txt'
+          r = old_readme.read_text(encoding='utf-8').replace('v0.3.17', 'v0.3.18').replace('Jesus Christ.', 'Shit.')
+          r += '\nHall return fix: OPEN DOOR and natural bedroom-return commands now work from the hall. Hall description reflects whether the bedroom door is open or closed.\n'
+          new_readme = root / 'README-v0.3.18.txt'
+          new_readme.write_text(r, encoding='utf-8')
+          old_readme.unlink()
+          PY
+
+      - name: Verify parser, physical description, SFX and no music
+        run: |
+          node --check android-exact-v0317/app/src/main/assets/game/game.js
+          node --check android-exact-v0317/app/src/main/assets/game/sfx-v0318.js
+          grep -F '"Shit."' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F 'stares at the closed door' android-exact-v0317/app/src/main/assets/game/game.js
+          ! grep -F 'toward the open bedroom window' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F '"go back to bedroom"' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F '"open master bedroom door"' android-exact-v0317/app/src/main/assets/game/game.js
+          grep -F 'The master bedroom door is closed behind Thomas.' android-exact-v0317/app/src/main/assets/game/game.js
+          test -f android-exact-v0317/app/src/main/assets/game/audio/bedroom-door-slam.mp3
+          test ! -f android-exact-v0317/app/src/main/assets/game/audio/one-last-morning-loop.mp3
+          ! grep -R "one-last-morning\|music-v0313" android-exact-v0317/app/src/main/assets/game
+
+      - name: Generate Gradle wrapper
+        run: gradle -p android-exact-v0317 wrapper --gradle-version 8.11.1
+
+      - name: Build debug APK
+        working-directory: android-exact-v0317
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Package and inspect APK
+        run: |
+          mkdir -p deliverables
+          cp android-exact-v0317/app/build/outputs/apk/debug/app-debug.apk deliverables/WhatTheHouseKept-v0.3.18-HALL-RETURN-FIX-debug.apk
+          (cd android-exact-v0317 && zip -qr ../deliverables/WhatTheHouseKept-AndroidStudio-v0.3.18-HALL-RETURN-FIX.zip . -x '.gradle/*' 'app/build/*' 'build/*')
+          unzip -l deliverables/WhatTheHouseKept-v0.3.18-HALL-RETURN-FIX-debug.apk > deliverables/apk-contents.txt
+          grep -F 'assets/game/audio/bedroom-door-slam.mp3' deliverables/apk-contents.txt
+          grep -F 'assets/game/sfx-v0318.js' deliverables/apk-contents.txt
+          if grep -E 'one-last-morning|music-v0313' deliverables/apk-contents.txt; then echo 'Music unexpectedly bundled'; exit 1; fi
+          sha256sum deliverables/*.apk deliverables/*.zip > deliverables/SHA256SUMS.txt
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WhatTheHouseKept-v0.3.18-hall-return-fix
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 30
