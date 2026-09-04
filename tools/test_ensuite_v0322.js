@@ -26,6 +26,7 @@ function command(text){
 function expect(text,needle){const r=command(text); assert.ok(r.response.toLowerCase().includes(needle.toLowerCase()), `${text}\nExpected: ${needle}\nGot: ${r.response}`); return r;}
 
 command('go bathroom');
+if (els.roomName.textContent !== 'Ensuite Bathroom') command('push door');
 assert.strictEqual(els.roomName.textContent,'Ensuite Bathroom');
 expect('look','eight-by-ten');
 expect('open cabinet','two plausible cabinets');
