@@ -1,0 +1,1603 @@
+--- lines 11-63 ---
+11:       "Back in the house after fourteen months. I arrived late last night and went straight upstairs."
+12:     ],
+13:     outside: [],
+14:     outsideLocations: {},
+15:     focus: "",
+16:     flags: {
+17:       introSeen: false,
+18:       bedroomDoorOpen: false,
+19:       hallSeen: false,
+20:       tableMoved: false,
+21:       drawerOpened: false,
+22:       drawerBroken: false,
+23:       brassKeySeen: false,
+24:       brassKeyTaken: false,
+25:       brassKeyLocation: "hidden",
+26:       drawerJammed: false,
+27:       drawerForceAttempts: 0,
+28:       drawerImpactAttempts: 0,
+29:       chargerTaken: false,
+30:       boxUnlocked: false,
+31:       floorPlanTaken: false,
+32:       photoTaken: false,
+33:       photoExamined: false,
+34:       photoTriedInFrame: false,
+35:       emptyFrameExamined: false,
+36:       emptyFrameBackChecked: false,
+37:       floorPlanBedroomCompared: false,
+38:       hallLightSwitchChecked: false,
+39:       hallBulbChecked: false,
+40:       bedMoved: false,
+41:       starSeen: false,
+42:       starTaken: false,
+43:       envelopeOpened: false,
+44:       clinicalNoteRead: false,
+45:       scratchesExamined: false,
+46:       scratchesMeasured: false,
+47:       curtainsOpen: false,
+48:       curtainsDown: false,
+49:       windowOpen: false,
+50:       glassBroken: false,
+51:       mirrorCoveredBedroom: false,
+52:       mattressFlipped: false,
+53:       stoolMoved: false,
+54:       stoolTaken: false,
+55:       crayonSeen: false,
+56:       cartoonBandageSeen: false,
+57:       cartoonBandageTaken: false,
+58:       hairbrushTaken: false,
+59:       hairRemoved: false,
+60:       bathroomMirrorCovered: false,
+61:       bathroomWaterRunning: false,
+62:       showerRunning: false,
+63:       bathroomFloorWet: false,
+
+--- lines 84-122 ---
+84:       pillowcaseInsideOut: false,
+85:       pillowcaseOnChair: false,
+86:       pillowOnMirror: false,
+87:       chairBarricade: false,
+88:       mirrorBedroomRemoved: false,
+89:       mirrorBedroomTurned: false,
+90:       mirrorBedroomCleaned: false,
+91:       mattressSleepTried: false,
+92:       mattressScratchSeen: false,
+93:       mattressScratchCleaned: false,
+94:       bedSheetsStripped: false,
+95:       bedroomOutletTested: false,
+96:       medicationDoseTaken: false,
+97:       lastPocketContext: "",
+98:       penTaken: false,
+99:       slipperTaken: false,
+100:       pencilTaken: false,
+101:       glassTaken: false,
+102:       coinsTaken: false,
+103:       coinsInGlass: false,
+104:       coinUnderBookcase: false,
+105:       coinScratchOnWall: false,
+106:       oldKeyTaken: false,
+107:       oldKeyAttempts: 0,
+108:       shoppingListTaken: false,
+109:       shoppingListFramed: false,
+110:       photoAlbumSeen: false,
+111:       photoAlbumGapsSeen: false,
+112:       paperAirplaneMade: false,
+113:       wardrobeEmptied: false,
+114:       wearingScarf: false,
+115:       bookUnderTable: false,
+116:       booksStacked: false,
+117:       floorboardGapSeen: false,
+118:       ventRemoved: false,
+119:       ventReached: false,
+120:       coatWorn: false,
+121:       coatOverHead: false,
+122:       coatOverMirror: false,
+
+--- lines 146-164 ---
+146:       flashlightSeen: false,
+147:       flashlightTaken: false,
+148:       flashlightBatteryChecked: false,
+149:       flashlightDeadBatteriesRemoved: false,
+150:       flashlightHasFreshBatteries: false,
+151:       flashlightOn: false,
+152:       bathroomCupboardOpen: false,
+153:       bathroomWindowOpen: false,
+154:       bathroomSinkFull: false,
+155:       bathroomMatLifted: false,
+156:       bathroomTowelTaken: false,
+157:       windowExitAttemptCount: 0,
+158:       windowJumpAttemptCount: 0,
+159:       windowClimbAttemptCount: 0,
+160:       showerCurtainDamaged: false
+161:     },
+162:     settings: {
+163:       ambient: true
+164:     }
+
+--- lines 299-317 ---
+299:       .toLowerCase()
+300:       .replace(/[?.!,;:]/g, " ")
+301:       .replace(/\s+/g, " ")
+302:       .trim()
+303:       .replace(/\bflash\s+light\b/g, "flashlight")
+304:       .replace(/^ut\s+(?=slippers?\b)/, "put ")
+305:       .replace(/^but\s+(?=sheets?\b)/, "put ")
+306:       .replace(/\bfloorplans?\b/g, "floor plan")
+307:       .replace(/^sclimb\b/, "climb")
+308:       .replace(/^clmb\b/, "climb")
+309:       .replace(/^jupm\b/, "jump");
+310:   }
+311: 
+312:   function simplifyCommand(text) {
+313:     return text
+314:       .replace(/\b(?:the|a|an|my|his)\b/g, " ")
+315:       .replace(/\s+/g, " ")
+316:       .trim();
+317:   }
+
+--- lines 353-371 ---
+353:     state.room = room;
+354:     saveState();
+355:     renderRoom();
+356:   }
+357: 
+358:   function roomTitle(room) {
+359:     if (room === "ensuite") return "Ensuite Bathroom";
+360:     if (room === "hall") return "Upstairs Hall";
+361:     return "Master Bedroom";
+362:   }
+363: 
+364:   function currentRoomDescriptionHtml() {
+365:     if (state.room === "ensuite") return ensuiteDescriptionHtml();
+366:     if (state.room === "hall") return hallDescriptionHtml();
+367:     return bedroomDescriptionHtml();
+368:   }
+369: 
+370:   function bedroomDescriptionHtml() {
+371:     const f = state.flags;
+
+--- lines 375-425 ---
+375:       : f.curtainsDown
+376:         ? "One end of the curtain rail has torn free from the plaster, leaving the fabric hanging crookedly and partly on the floor."
+377:         : f.curtainsOpen
+378:           ? "The curtains stand open around the window, letting a broad wash of grey morning light across the floor."
+379:           : "Heavy curtains cover most of the window, allowing only a narrow strip of morning light into the room.";
+380: 
+381:     const tableText = f.tableMoved
+382:       ? "The bedside table has been dragged away from the wall, exposing the outlet and the dusty strip of floor behind it."
+383:       : "The bedside table stands close beside the bed.";
+384: 
+385:     const bedText = f.bedMoved
+386:       ? "The bed has been shoved several inches away from the wall, leaving a dark strip of floor exposed behind the headboard."
+387:       : "The old wooden bed occupies most of the far wall, with enough clearance beneath it for several dark inches of floor to disappear from view.";
+388: 
+389:     const mirrorText = f.mirrorBedroomTurned
+390:       ? "The full-length mirror has been turned to face the wall."
+391:       : f.mirrorCoveredBedroom
+392:         ? "The full-length mirror is covered."
+393:         : "A dusty full-length mirror faces the bed.";
+394: 
+395:     const mattressText = f.mattressFlipped
+396:       ? "The mattress is flipped, leaving the wooden supports exposed."
+397:       : "";
+398: 
+399:     const chairText = f.chairBarricade
+400:       ? "The wooden chair has been wedged beneath the bedroom doorknob."
+401:       : "A wooden chair stands beneath the window.";
+402: 
+403:     const messBits = [];
+404:     if (f.glassBroken) messBits.push("broken glass lies across part of the floor");
+405:     if (f.wardrobeEmptied) messBits.push("clothing has been piled out of the wardrobe");
+406:     if (f.pillowFort) messBits.push("the bed has been partially converted into an unimpressive pillow fort");
+407:     if (f.coinScratchOnWall) messBits.push("a fresh coin-scratch marks the wall");
+408:     if (f.bookUnderTable) messBits.push("a paperback is wedged beneath one leg of the bedside table");
+409:     const messText = messBits.length ? ` The room now also contains evidence of Thomas's decisions: ${messBits.join(", ")}.` : "";
+410: 
+411:     return `
+412:       <p>${bedText} ${tableText}</p>
+413:       <p>Across the room, the wardrobe and bookcase remain against the far wall. ${mirrorText} ${chairText} ${curtainText}</p>
+414:       <p>His suitcase remains near the bedroom door. The small ensuite door sits beside the wardrobe. ${mattressText}</p>
+415:       <p>The room still contains the ordinary leftovers of a shared life: books, clothes, framed pictures, coins, the hospital paperwork, and whatever objects Thomas has not already moved, broken, pocketed or thrown outside.${messText}</p>
+416:       <p>Three short scratches remain low on the bedroom door.</p>
+417:     `;
+418:   }
+419: 
+420:   function hallDescriptionHtml() {
+421:     const f = state.flags;
+422:     const beam = f.flashlightOn && f.flashlightHasFreshBatteries && hasItem("Emergency flashlight")
+423:       ? "Thomas's flashlight throws a clean beam along the landing."
+424:       : "Most of the landing remains in shadow, with only weak daylight reaching it from the stairwell.";
+425:     return `
+
+--- lines 474-529 ---
+474:     const curtainText = f.curtainsDown
+475:       ? "The curtains have been pulled partly from the wall and lie in an undignified heap near the window."
+476:       : f.curtainsOpen
+477:         ? "The curtains stand open around the window, letting a broad wash of grey morning light across the floor."
+478:         : "Heavy curtains cover most of the window, allowing only a narrow strip of morning light into the room.";
+479: 
+480:     const tableText = f.tableMoved
+481:       ? "The bedside table has been dragged away from the wall, exposing the outlet and the dusty strip of floor behind it."
+482:       : "The bedside table stands close beside the bed.";
+483: 
+484:     const bedText = f.bedMoved
+485:       ? "The bed has been shoved several inches away from the wall, leaving a dark strip of floor exposed behind the headboard."
+486:       : "The old wooden bed occupies most of the far wall, with enough clearance beneath it for several dark inches of floor to disappear from view.";
+487: 
+488:     const chaos = [];
+489:     if (f.chairBarricade) chaos.push("The wooden chair is wedged beneath the bedroom doorknob, barricading a door nobody has tried to open.");
+490:     if (f.mattressFlipped) chaos.push("The mattress is flipped and the bedding has been disturbed enough that the bed no longer resembles the one Thomas woke in.");
+491:     if (f.pillowFort) chaos.push("A deeply unimpressive pillow fort occupies part of the bed.");
+492:     if (f.wardrobeEmptied) chaos.push("A substantial portion of the wardrobe is now piled across the bed because Thomas apparently decided sorting could begin with maximum inconvenience.");
+493:     if (f.bookUnderTable) chaos.push("One of the old paperbacks is wedged beneath the uneven leg of the bedside table, where it has finally found practical purpose.");
+494:     if (f.mirrorBedroomTurned) chaos.push("The full-length mirror has been turned toward the wall.");
+495:     else if (f.mirrorCoveredBedroom || f.coatOverMirror) chaos.push("The full-length mirror is covered, leaving the room oddly less occupied.");
+496:     if (f.glassBroken) chaos.push("Broken glass remains scattered near the wall, a hazard Thomas created entirely for himself.");
+497:     if (state.outside && state.outside.length) chaos.push(`Several objects are no longer in the room because Thomas threw them outside: ${state.outside.map(escapeHtml).join(", ")}.`);
+498: 
+499:     const intro = `
+500:       <p>Thomas woke without immediately knowing where he was.</p>
+501:       <p>The confusion lasted only a few seconds. Grey morning light showed him a ceiling he had spent years looking at, although recognition arrived strangely, as though he were remembering the room from a photograph rather than waking inside it. A narrow crack ran from the plaster medallion above the light fixture toward the far wall. He remembered standing on the mattress once with a flashlight, examining that crack while Jennifer insisted from below that ceilings were permitted to age without doing it specifically to annoy him.</p>
+502:       <p>He had driven back in the rain, arrived sometime after eleven, carried his suitcase upstairs and gone almost immediately to bed. Fourteen months away, followed by one miserable night back, and apparently his brain had already decided that remembering where he lived was optional.</p>
+503:       <p>${bedText} ${tableText} Across the room, a tall wardrobe faces the bed beside a dusty full-length mirror and a narrow bookcase. His suitcase remains mostly packed beside the bedroom door. ${curtainText} A small ensuite door sits near the wardrobe.</p>
+504:       <p>The room contains the ordinary leftovers of a shared life: books, clothes, an old laundry basket, framed pictures, coins in a ceramic dish, ${f.clockLocation === "outside" ? "the empty place where the alarm clock used to be" : f.clockBroken ? "a damaged alarm clock" : "a dead alarm clock"}, and ${f.envelopeOpened ? "the opened hospital paperwork" : "the sealed hospital envelope"} Thomas dropped beside his phone last night.</p>
+505:       <p>One of the two frames near the wardrobe is empty. Three short scratches mark the paint near the bottom of the bedroom door.</p>
+506:       ${chaos.length ? `<p>${chaos.join(" ")}</p>` : ""}
+507:       <p>For the moment, nothing in the room appears to require his attention.</p>
+508:     `;
+509:     sceneEl.innerHTML = intro;
+510:   }
+511: 
+512:   function renderHall() {
+513:     const f = state.flags;
+514:     const beam = f.flashlightOn && f.flashlightHasFreshBatteries && hasItem("Emergency flashlight")
+515:       ? "Thomas's repaired flashlight is on, its beam reaching cleanly down the landing."
+516:       : "Very little daylight reaches the landing from the stairwell, leaving the far end in shadow.";
+517:     sceneEl.innerHTML = `
+518:       <p>Thomas steps into the upstairs hall. ${beam}</p>
+519:       <p>A ceiling fixture hangs above the landing. The light switch beside the master bedroom door is in easy reach. The fixture remains dark.</p>
+520:       <p>Several doors continue along the hall. For now, the practical problem is simpler: the upstairs light is not working.</p>
+521:     `;
+522:   }
+523: 
+524:   function renderEnsuite() {
+525:     const f = state.flags;
+526:     const stoolText = f.stoolTaken
+527:       ? "The space beneath the sink is more open now that the small plastic stool has been removed."
+528:       : f.stoolMoved
+529:         ? "The small plastic step stool has been pulled out from beneath the sink."
+
+--- lines 562-580 ---
+562:     }
+563: 
+564:     closeDrawer();
+565: 
+566:     if (state.room === "bedroom") {
+567:       bedroomCommand(q, raw);
+568:     } else if (state.room === "hall") {
+569:       hallCommand(q, raw);
+570:     } else {
+571:       ensuiteCommand(q, raw);
+572:     }
+573: 
+574:     saveState();
+575:   }
+576: 
+577:   function handleBedroomClock(q, raw) {
+578:     const f = state.flags;
+579: 
+580:     const asksForTime =
+
+--- lines 681-699 ---
+681:     if (hasAny(q, ["unplug"])) {
+682:       if (!clockHere) {
+683:         say("The alarm clock is outside and very definitely no longer plugged in.", raw);
+684:       } else if (f.clockUnplugged) {
+685:         say("The clock is already unplugged.", raw);
+686:       } else {
+687:         f.clockUnplugged = true;
+688:         say("Thomas pulls the plug from the outlet. The clock reacts exactly as much as it did while plugged in.", raw);
+689:       }
+690:       return true;
+691:     }
+692: 
+693:     if (hasAny(q, ["plug in", "plug clock", "plug alarm clock"])) {
+694:       if (!clockHere) {
+695:         say("The alarm clock is outside. The extension-cord solution required here would be absurd.", raw);
+696:       } else if (!f.clockUnplugged) {
+697:         say("The clock is already plugged in.", raw);
+698:       } else {
+699:         f.clockUnplugged = false;
+
+--- lines 731-749 ---
+731:         f.clockShakeCount += 1;
+732:         say("Thomas shakes the clock. Something rattles faintly inside. It does not sound like a loose battery.", raw);
+733:       }
+734:       return true;
+735:     }
+736: 
+737:     if (hasAny(q, ["throw"]) && hasAny(q, ["outside", "out window", "through window"])) {
+738:       if (!f.windowOpen) {
+739:         say("The window is closed. Thomas is not hurling an alarm clock through the glass.", raw);
+740:       } else if (!clockHere) {
+741:         say("The alarm clock is already outside.", raw);
+742:       } else {
+743:         removeInventory(clockItem);
+744:         f.clockLocation = "outside";
+745:         f.clockBroken = true;
+746:         putOutside(clockItem, "stonePatio");
+747:         say("Thomas throws the alarm clock out the open window. It drops to the wet stone patio below and hits hard enough for the casing to split at one corner. From up here he can still see it lying near the patio edge. The bedroom has become marginally less mysterious and significantly less equipped with clocks.", raw);
+748:       }
+749:       return true;
+
+--- lines 1008-1031 ---
+1008:       } else {
+1009:         say("The full-length mirror is old but intact, its surface lightly dusty. Thomas's reflection looks tired enough to make the glass seem less flattering than necessary.", raw);
+1010:       }
+1011:       return true;
+1012:     }
+1013: 
+1014:     if (isLook && hasAny(q, ["suitcase", "luggage"])) {
+1015:       say("Thomas's suitcase is the one he brought home from the hospital last night. It is mostly packed, with clothes, toiletries, medication, spare shoes, his charger adapter and a paperback inside. One outside side pocket is zipped closed.", raw);
+1016:       return true;
+1017:     }
+1018: 
+1019:     if (isLook && hasAny(q, ["window"]) && !hasAny(q, ["out window", "outside", "through window"])) {
+1020:       const stateText = f.windowOpen
+1021:         ? "It is open, letting cold damp air into the room."
+1022:         : f.windowLocked
+1023:           ? "It is closed and latched."
+1024:           : "It is closed but unlocked.";
+1025:       say(`The bedroom window overlooks the back garden. Beyond the patio and rain-dark lawn, mature trees partly frame the detached garage and its wet roof near the rear of the property. A wooden fence closes off the garden, with only a little of the rear lane and neighbouring property visible beyond it. ${stateText} The frame sticks slightly with age.`, raw);
+1026:       return true;
+1027:     }
+1028: 
+1029:     if (isLook && hasAny(q, ["laundry basket", "laundry hamper", "hamper"])) {
+1030:       say("The old laundry basket near the foot of the bed contains clothes, a towel, several socks and a shirt Thomas remembers disliking. It has been sitting here far too long to deserve close olfactory study.", raw);
+1031:       return true;
+
+--- lines 1042-1060 ---
+1042:         say("Thomas has retrieved the missing slipper. Its matching partner remains near the laundry basket.", raw);
+1043:       } else {
+1044:         say("One old slipper sits near the laundry basket. Its matching slipper is partly under the bed.", raw);
+1045:       }
+1046:       return true;
+1047:     }
+1048: 
+1049:     if (isLook && hasAny(q, ["framed pictures", "pictures", "picture frames", "frames"]) && !hasAny(q, ["empty frame", "photo", "photograph"])) {
+1050:       say("Two frames hang near the wardrobe. One contains an ordinary landscape print. The smaller frame is empty, although its glass and backing are still intact.", raw);
+1051:       return true;
+1052:     }
+1053: 
+1054:     if (isLook && hasAny(q, ["landscape picture", "landscape print", "landscape"])) {
+1055:       say("The larger frame contains a muted landscape print. Thomas remembers seeing it for years and cannot remember either of them ever caring enough about it to replace it.", raw);
+1056:       return true;
+1057:     }
+1058: 
+1059:     if (isLook && hasAny(q, ["books", "novels"])) {
+1060:       say("The bookcase holds a mixture of old novels, paperbacks and books Thomas kept because throwing them away felt more difficult than reading them again. None announces itself as important.", raw);
+
+--- lines 1094-1113 ---
+1094:         : "A small wooden box sits on the upper bookcase shelf. A worn brass lock is set into the front.", raw);
+1095:       return true;
+1096:     }
+1097: 
+1098:     if (isLook && hasAny(q, ["bedroom door", "door"]) && !hasAny(q, ["ensuite", "bathroom", "wardrobe"])) {
+1099:       const doorState = f.chairBarricade
+1100:         ? "The chair is wedged beneath the knob."
+1101:         : f.bedroomDoorOpen
+1102:           ? "It is open to the dark upstairs hallway."
+1103:           : "It is closed.";
+1104:       say(`The bedroom door is old painted wood with a brass knob. ${doorState} Three short parallel scratches mark the paint low near the bottom.`, raw);
+1105:       return true;
+1106:     }
+1107: 
+1108:     if (isLook && hasAny(q, ["ensuite door", "bathroom door"])) {
+1109:       say("The narrow ensuite door sits beside the wardrobe. It is ordinary painted wood and opens directly into the small private bathroom.", raw);
+1110:       return true;
+1111:     }
+1112: 
+1113:     if (isLook && hasAny(q, ["floor", "floorboards"]) && !hasAny(q, ["under bed", "glass", "behind stool"])) {
+
+--- lines 1131-1154 ---
+1131:         say("Thomas has not found a small brass key.", raw);
+1132:       } else {
+1133:         say("The small brass key is old and worn smooth along the teeth. It is much smaller than the keys on Thomas's ordinary house ring.", raw);
+1134:       }
+1135:       return true;
+1136:     }
+1137: 
+1138:     if (isLook && hasAny(q, ["phone charger", "charger"])) {
+1139:       say(f.chargerTaken
+1140:         ? "Thomas's black phone charger is an ordinary cable and wall plug, now back in his possession."
+1141:         : f.tableMoved
+1142:           ? "Thomas's black phone charger lies behind the bedside table."
+1143:           : "Thomas remembers bringing a charger upstairs but cannot see it from here.", raw);
+1144:       return true;
+1145:     }
+1146: 
+1147:     if (isLook && hasAny(q, ["old key", "useless key"])) {
+1148:       say(f.oldKeyTaken
+1149:         ? "The old key looks convincingly useful, which is unfortunate because nothing Thomas has tried it on so far agrees."
+1150:         : "An old key rests in the ceramic dish on the bookcase.", raw);
+1151:       return true;
+1152:     }
+1153: 
+1154:     if (isLook && hasAny(q, ["shopping list"])) {
+
+--- lines 1172-1194 ---
+1172:         ? "The pencil is old, blunt and still usable."
+1173:         : "A blunt pencil is lodged behind the radiator.", raw);
+1174:       return true;
+1175:     }
+1176: 
+1177:     if ((isLook || hasAny(q, ["read floor plan", "read house plan", "open floor plan", "unfold floor plan", "view floor plan"]) || q === "floor plan") &&
+1178:         hasAny(q, ["floor plan", "house plan", "architectural plan"])) {
+1179:       if (!f.floorPlanTaken) {
+1180:         say("Thomas does not have the floor plan in front of him.", raw);
+1181:       } else {
+1182:         say("Thomas unfolds the architectural plan. It shows the ground floor, upper floor, basement and attic with room dimensions. At first glance it looks ordinary.", raw);
+1183:         openFloorPlanPanel();
+1184:       }
+1185:       return true;
+1186:     }
+1187: 
+1188:     if (isLook && hasAny(q, ["aa batteries", "batteries"]) && !hasAny(q, ["flashlight battery", "flashlight batteries", "clock battery", "clock batteries", "camera battery", "camera batteries"])) {
+1189:       if (f.cameraBatteriesTaken && hasItem("Two AA batteries")) {
+1190:         say("Two ordinary AA batteries taken from the old digital camera. They look old but clean, with no obvious corrosion.", raw);
+1191:       } else if (f.flashlightDeadBatteriesRemoved && hasItem("Two dead corroded AA batteries")) {
+1192:         say("The two batteries from the flashlight are old and crusted around one terminal. They are finished.", raw);
+1193:       } else {
+1194:         say("Thomas does not currently have loose AA batteries to inspect.", raw);
+
+--- lines 1215-1248 ---
+1215:     if (hasAny(q, ["wrap self in curtains", "wrap himself in curtains"])) {
+1216:       f.curtainWrapped = true;
+1217:       say("Thomas gathers the faded fabric around his shoulders. For several seconds he resembles either an impoverished monarch or a man making increasingly questionable decisions in an empty house. He lets it fall.", raw);
+1218:       return true;
+1219:     }
+1220: 
+1221:     if (hasAny(q, ["examine cut edge", "inspect cut edge", "look at cut edge", "study cut edge", "check cut edge"])) {
+1222:       if (!f.photoTaken && !f.boxUnlocked) {
+1223:         say("Thomas has not found a loose photograph with a cut edge.", raw);
+1224:       } else {
+1225:         f.photoExamined = true;
+1226:         say("The cut is not straight. Part of Jennifer's right arm continues beyond the edge of the picture, her elbow positioned as though her arm had been around someone standing beside her. Whatever occupied that part of the photograph has been removed. Thomas does not remember doing it.", raw);
+1227:       }
+1228:       return true;
+1229:     }
+1230: 
+1231:     if (hasAny(q, ["photo", "photograph"]) && hasAny(q, ["frame"]) && hasAny(q, ["put", "place", "try", "fit"])) {
+1232:       if (!hasItem("Trimmed photograph of Thomas and Jennifer") && !f.photoTaken) {
+1233:         say("Thomas does not have the trimmed photograph in his hands yet.", raw);
+1234:       } else {
+1235:         f.photoTriedInFrame = true;
+1236:         addJournal("The trimmed photograph from the wooden box is the right height for the empty bedroom frame, but several centimetres too narrow. It may once have been a larger photograph.");
+1237:         say("Thomas removes the frame backing and tries the photograph. It fits vertically. Horizontally, it is too narrow by several centimetres. The photograph that belonged in the frame was larger. Thomas looks at the cut edge again.", raw);
+1238:       }
+1239:       return true;
+1240:     }
+1241: 
+1242:     if (hasAny(q, ["touch scratches", "feel scratches", "run fingers over scratches"])) {
+1243:       say("Thomas runs a fingertip across the damaged paint. The exposed wood beneath it has smoothed with age. The scratches are not recent.", raw);
+1244:       return true;
+1245:     }
+1246: 
+1247:     if (hasAny(q, ["wear clothes", "change clothes", "put on clothes"])) {
+1248:       say("Thomas changes into clean clothes from the suitcase. The action is ordinary enough to be reassuring.", raw);
+
+--- lines 1293-1311 ---
+1293:     if (q === "knock three times" || q === "knock 3 times") {
+1294:       f.doorKnockCount += 3;
+1295:       say("Thomas knocks on the inside of the bedroom door three times. One. Two. Three. Silence.", raw);
+1296:       return true;
+1297:     }
+1298: 
+1299:     if (hasAny(q, ["old key"]) && hasAny(q, ["empty frame", "frame"]) && hasAny(q, ["put", "place"])) {
+1300:       say("Thomas places the old key against the frame backing. It falls immediately. The frame remains stubbornly committed to photographs.", raw);
+1301:       return true;
+1302:     }
+1303: 
+1304:     // Flashlight battery installation is an intent family, not a magic phrase.
+1305:     const wantsFlashlightBatteryInstall =
+1306:       hasAny(q, ["put", "place", "insert", "install", "load", "use", "replace", "swap", "change"]) &&
+1307:       hasAny(q, ["battery", "batteries", "aa battery", "aa batteries", "camera battery", "camera batteries"]) &&
+1308:       hasAny(q, ["flashlight", "torch"]) &&
+1309:       !hasAny(q, ["remove", "take out", "pull out", "extract"]);
+1310: 
+1311:     if (wantsFlashlightBatteryInstall) {
+
+--- lines 1437-1455 ---
+1437:     const f = state.flags;
+1438:     const isLook = hasAny(q, ["look", "look at", "examine", "inspect", "check", "study"]);
+1439:     const isTake = hasAny(q, ["take", "get", "pick up", "pickup", "grab", "remove"]);
+1440: 
+1441:     // BED: "sit down on the bed" should not be treated as sleep/lie down.
+1442:     if (hasAny(q, ["bed"]) && hasAny(q, ["sit", "sit down", "sit on", "sit down on"])) {
+1443:       f.sittingOnBed = true;
+1444:       say("Thomas sits on the edge of the bed. The mattress gives beneath his weight, familiar in a way the rest of the room still is not. From here he can reach the bedside table without standing.", raw);
+1445:       return true;
+1446:     }
+1447: 
+1448:     // BEDSIDE TABLE. This is intentionally checked before the bed handlers.
+1449:     if (hasAny(q, ["bedside table", "nightstand", "night stand"]) ||
+1450:         (hasAny(q, ["table"]) && !hasAny(q, ["book table", "dining table"]))) {
+1451: 
+1452:       if (isLook || q === "table" || q === "bedside table") {
+1453:         const position = f.tableMoved
+1454:           ? "It has been dragged several inches away from the wall."
+1455:           : "It stands close enough to the bed that Thomas can reach it without standing.";
+
+--- lines 1530-1555 ---
+1530:         if (state.inventory.includes("Phone")) say("Thomas already has his phone.", raw);
+1531:         else {
+1532:           addInventory("Phone");
+1533:           say("Thomas takes his phone.", raw);
+1534:         }
+1535:         return true;
+1536:       }
+1537:       if (hasAny(q, ["plug phone in", "plug in phone", "charge phone", "plug phone charger in", "plug charger into outlet", "plug phone into outlet"])) {
+1538:         if (!f.chargerTaken && !hasItem("Phone charger")) {
+1539:           say(f.tableMoved
+1540:             ? "Thomas's phone charger is still lying behind the bedside table. He would need to pick it up first."
+1541:             : "Thomas needs his phone charger before he can test the outlet.", raw);
+1542:         } else {
+1543:           f.bedroomOutletTested = true;
+1544:           say("Thomas plugs the charger into the bedroom outlet and connects his phone. Nothing happens. The phone does not acknowledge external power at all. The outlet is dead too. So it is not just the alarm clock.", raw);
+1545:         }
+1546:         return true;
+1547:       }
+1548:     }
+1549: 
+1550:     // PLASTIC STAR
+1551:     if (hasAny(q, ["star", "plastic star", "glow in dark star", "glow-in-the-dark star"])) {
+1552:       if (isLook) {
+1553:         if (!f.starSeen) {
+1554:           say("Thomas does not see a star anywhere in the room.", raw);
+1555:         } else if (f.starLocation === "outside" || isOutside("Glow-in-the-dark plastic star")) {
+
+--- lines 1590-1627 ---
+1590:       const cameraCableVisible = f.shoeBoxOpened || f.cameraSeen;
+1591:       if (isLook) {
+1592:         if (f.cameraUsbCableTaken || hasItem("Camera USB cable")) {
+1593:           say("The short USB cable from the camera is now with Thomas. It is an older data-and-charging lead, still usable if he finds anything that needs it.", raw);
+1594:         } else if (cameraCableVisible) {
+1595:           say("A short USB cable is tangled around the old camera's wrist strap inside the shoe box. It appears to be the camera's data-and-charging cable.", raw);
+1596:         } else if (f.tableMoved && hasAny(q, ["charging cable", "cable"])) {
+1597:           say(f.chargerTaken ? "Thomas already has his phone charger." : "Thomas's phone charger is visible behind the moved bedside table.", raw);
+1598:         } else {
+1599:           say("Thomas does not see a loose cable here yet.", raw);
+1600:         }
+1601:         return true;
+1602:       }
+1603: 
+1604:       if (isTake) {
+1605:         if (cameraCableVisible && !f.cameraUsbCableTaken) {
+1606:           f.cameraUsbCableTaken = true;
+1607:           addInventory("Camera USB cable");
+1608:           say("Thomas untangles the short USB cable from the camera strap and keeps it.", raw);
+1609:         } else if (f.cameraUsbCableTaken || hasItem("Camera USB cable")) {
+1610:           say("Thomas already has the camera's USB cable.", raw);
+1611:         } else if (f.tableMoved && !f.chargerTaken) {
+1612:           f.chargerTaken = true;
+1613:           addInventory("Phone charger");
+1614:           say("Thomas retrieves the phone charger from behind the bedside table.", raw);
+1615:         } else if (f.chargerTaken) {
+1616:           say("Thomas already has his phone charger.", raw);
+1617:         } else {
+1618:           say("Thomas does not see a loose cable he can take yet.", raw);
+1619:         }
+1620:         return true;
+1621:       }
+1622:     }
+1623: 
+1624:     // Bare TAKE BATTERIES should use the visible camera batteries when that is the obvious source.
+1625:     if (isTake && hasAny(q, ["battery", "batteries", "aa battery", "aa batteries"]) &&
+1626:         !hasAny(q, ["flashlight", "torch", "clock"])) {
+1627:       if (f.cameraSeen && !f.cameraBatteriesTaken) {
+
+--- lines 1695-1798 ---
+1695:     const keyLine = keyCanMove ? " Something metallic skitters beneath the bed." : "";
+1696:     say(`${opening}${keyLine} Thomas looks at the broken drawer. “That worked.” It is difficult to tell whether he considers this a victory.`, raw);
+1697:   }
+1698: 
+1699:   function bedroomCommand(q, raw) {
+1700:     const f = state.flags;
+1701: 
+1702:     const photoAvailable = f.boxUnlocked || f.photoTaken || hasItem("Trimmed photograph of Thomas and Jennifer");
+1703:     const photoClueCommand =
+1704:       q === "photo" || q === "photograph" ||
+1705:       hasAny(q, ["look at photograph", "examine photograph", "inspect photograph", "check photograph", "study photograph", "look at photo", "examine photo", "inspect photo", "check photo", "study photo"]) ||
+1706:       hasAny(q, ["look at edge", "look at cut edge", "examine edge", "examine cut edge", "inspect edge", "inspect cut edge", "check edge", "study edge"]) ||
+1707:       hasAny(q, ["why is photo cut", "why is photograph cut", "why photo cut", "why photograph cut"]) ||
+1708:       (q === "look closer" && state.focus === "photo");
+1709: 
+1710:     if (photoClueCommand) {
+1711:       if (!photoAvailable) {
+1712:         say("Thomas has not found a loose photograph to examine yet.", raw);
+1713:       } else {
+1714:         state.focus = "photo";
+1715:         f.photoExamined = true;
+1716:         say("Thomas looks more carefully at the photograph. The cut along the right edge is uneven. Jennifer's right arm continues toward the missing side, positioned as though it had been around someone standing beside her. Someone has been physically cut out of the picture. Thomas cannot remember who, or why.", raw);
+1717:       }
+1718:       return;
+1719:     }
+1720: 
+1721:     const emptyFrameLook =
+1722:       q === "empty frame" ||
+1723:       hasAny(q, ["look at empty frame", "examine empty frame", "inspect empty frame", "check empty frame", "look at frame"]) && !hasAny(q, ["photo", "photograph"]);
+1724:     if (emptyFrameLook) {
+1725:       state.focus = "emptyFrame";
+1726:       f.emptyFrameExamined = true;
+1727:       say("The smaller frame hangs slightly crooked. The glass is intact, but there is no photograph inside it. The cardboard backing is still held in place by the little metal tabs. Nothing on the front explains why the frame is empty.", raw);
+1728:       return;
+1729:     }
+1730: 
+1731:     const emptyFrameBack =
+1732:       hasAny(q, ["look at back of frame", "look at back of empty frame", "check back of frame", "examine back of frame", "look at backing", "check backing", "examine backing", "open empty frame"]) ||
+1733:       (hasAny(q, ["look at back", "check back", "examine back"]) && state.focus === "emptyFrame");
+1734:     if (emptyFrameBack) {
+1735:       state.focus = "emptyFrame";
+1736:       f.emptyFrameExamined = true;
+1737:       f.emptyFrameBackChecked = true;
+1738:       f.frameOpened = q.includes("open");
+1739:       say("On the cardboard backing, a date has been written lightly in pencil. It is from five years ago. Nothing else is marked there.", raw);
+1740:       return;
+1741:     }
+1742: 
+1743:     if (f.mattressFlipped && hasAny(q, ["look at bed frame", "examine bed frame", "inspect bed frame", "check bed frame", "look at slats", "look at bed slats", "examine slats", "examine bed slats", "inspect slats", "check slats", "look at support slats", "look at slat", "examine slat"])) {
+1744:       state.focus = "mattressSlat";
+1745:       f.mattressScratchSeen = true;
+1746:       if (f.mattressScratchCleaned) {
+1747:         say("With the mattress out of the way, the wooden support slats are exposed. On one slat, two very faint letters show through the cleaned patch: EM. They were scratched by hand, shallow and uneven.", raw);
+1748:       } else {
+1749:         say("With the mattress out of the way, the wooden support slats are exposed. One support bears a few shallow, deliberate scratches beneath a film of dust. They are too faint to read without looking more closely or clearing the dust.", raw);
+1750:       }
+1751:       return;
+1752:     }
+1753: 
+1754:     if (f.mattressFlipped && (
+1755:       hasAny(q, ["clean dust", "clean the dust", "wipe dust", "wipe the dust", "clean slat", "wipe slat", "clean dust off slat", "brush dust off slat"]) ||
+1756:       hasAny(q, ["examine scratching", "inspect scratching", "look at scratching", "examine scratches on slat", "inspect scratches on slat", "look closer at scratching"])
+1757:     )) {
+1758:       state.focus = "mattressSlat";
+1759:       f.mattressScratchSeen = true;
+1760:       f.mattressScratchCleaned = true;
+1761:       say("Thomas brushes the dust aside and leans closer. Two very faint letters have been scratched into the wooden support: EM. The marks are shallow and uneven, clearly made by hand. Initials, half a word, some old private notation. It could mean anything.", raw);
+1762:       return;
+1763:     }
+1764: 
+1765:     if (hasAny(q, ["check outlet", "look at outlet", "examine outlet", "inspect outlet", "check bedroom outlet", "look at bedroom outlet"])) {
+1766:       if (!f.tableMoved) {
+1767:         say("The bedroom outlet is mostly hidden behind the bedside table. Thomas can see the alarm clock cord running toward it, but he would need to move the table to inspect the socket properly.", raw);
+1768:       } else {
+1769:         state.focus = "bedroomOutlet";
+1770:         say("The outlet looks ordinary. No scorch marks, cracked plastic or loose faceplate. The alarm clock is connected to it and still dead. Whatever is wrong is not visibly wrong at the socket.", raw);
+1771:       }
+1772:       return;
+1773:     }
+1774: 
+1775:     if (hasAny(q, ["plug phone charger into outlet", "plug charger into outlet", "plug phone charger in", "plug charger in", "charge phone", "plug phone in", "plug phone into outlet"])) {
+1776:       if (!f.chargerTaken && !hasItem("Phone charger")) {
+1777:         if (f.tableMoved) {
+1778:           f.chargerTaken = true;
+1779:           addInventory("Phone charger");
+1780:         } else {
+1781:           say("Thomas needs the phone charger first. He remembers bringing it upstairs, but it is not visible from here.", raw);
+1782:           return;
+1783:         }
+1784:       }
+1785:       f.bedroomOutletTested = true;
+1786:       state.focus = "bedroomOutlet";
+1787:       say("Thomas plugs the charger into the bedroom outlet and connects his phone. Nothing happens. The phone does not acknowledge external power at all. The outlet is dead too. So it is not just the alarm clock.", raw);
+1788:       return;
+1789:     }
+1790: 
+1791:     if (hasAny(q, ["turn on hall light", "turn hall light on", "switch on hall light", "flip hall light switch", "use hall light switch"]) && f.hallSeen) {
+1792:       say("Thomas reaches for the hall switch and flips it. Nothing. The ceiling fixture remains dark.", raw);
+1793:       return;
+1794:     }
+1795: 
+1796:     if (hasAny(q, ["check light switch", "examine light switch", "inspect light switch", "check hall switch", "look at light switch"]) && f.hallSeen) {
+1797:       f.hallLightSwitchChecked = true;
+1798:       say("The hall switch looks ordinary. The toggle moves normally and there is no obvious damage around the plate. It simply does not turn the ceiling light on.", raw);
+
+--- lines 1802-1865 ---
+1802:     if (hasAny(q, ["check bulb", "look at bulb", "examine bulb", "inspect bulb", "check hall bulb"]) && f.hallSeen) {
+1803:       f.hallBulbChecked = true;
+1804:       say("The bulb in the hall fixture is intact. The glass is unbroken and the filament does not appear snapped. The problem is probably not the bulb.", raw);
+1805:       return;
+1806:     }
+1807: 
+1808:     // Floor-plan commands are deliberately handled before every general object
+1809:     // family. Treat PLAN / PLANS / FLOORPLAN / FLOORPLANS / FLOOR PLAN /
+1810:     // FLOOR PLANS as one object family so generic LOOK/TAKE fallbacks cannot steal them.
+1811:     const floorPlanNoun = /(?:^|\s)(?:floor plan|floor plans|house plan|house plans|architectural plan|architectural plans|plan|plans)(?:$|\s)/.test(q);
+1812:     const floorPlanTake = floorPlanNoun && /^(?:take|get|grab|hold|pick up|pickup)\b/.test(q);
+1813:     const floorPlanInspect = floorPlanNoun && (
+1814:       /^(?:look(?: at)?|examine|inspect|check|study|view|read|open|unfold)\b/.test(q) ||
+1815:       ["plan", "plans", "floor plan", "floor plans", "house plan", "house plans"].includes(q)
+1816:     );
+1817: 
+1818:     const floorPlanBedroomCompare = floorPlanNoun && hasAny(q, [
+1819:       "compare floor plan to bedroom", "compare floor plan with bedroom", "compare bedroom to floor plan",
+1820:       "compare plan to bedroom", "compare plan with bedroom", "compare bedroom to plan",
+1821:       "compare floor plan to room", "compare plan to room"
+1822:     ]);
+1823: 
+1824:     if (floorPlanBedroomCompare) {
+1825:       if (!f.boxUnlocked && !f.floorPlanTaken) {
+1826:         say("Thomas has not found a floor plan yet.", raw);
+1827:         return;
+1828:       }
+1829:       if (!f.floorPlanTaken) {
+1830:         f.floorPlanTaken = true;
+1831:         addInventory("Folded house floor plan");
+1832:       }
+1833:       f.floorPlanBedroomCompared = true;
+1834:       say("The plan lists the master bedroom as 14 × 16 feet. Thomas paces the shorter wall and checks it again against the floorboards. Roughly, the room seems perhaps six inches wider than the drawing says. Old plans, plaster, trim, remodeling, or Thomas's terrible method of measuring could explain that. He does not give it much weight.", raw);
+1835:       return;
+1836:     }
+1837: 
+1838:     if (floorPlanTake || floorPlanInspect) {
+1839:       if (!f.boxUnlocked && !f.floorPlanTaken) {
+1840:         say("Thomas has not found a floor plan yet.", raw);
+1841:         return;
+1842:       }
+1843: 
+1844:       if (!f.floorPlanTaken) {
+1845:         f.floorPlanTaken = true;
+1846:         addInventory("Folded house floor plan");
+1847:       }
+1848: 
+1849:       if (floorPlanTake) {
+1850:         say("Thomas unfolds it enough to confirm what it is. Ground floor. Upper floor. Basement. Attic. Room measurements. Nothing immediately unusual. He folds it again and keeps it.", raw);
+1851:       } else {
+1852:         say("Thomas unfolds the architectural plan. It shows the ground floor, upper floor, basement and attic with room dimensions. At first glance it looks ordinary.", raw);
+1853:       }
+1854:       openFloorPlanPanel();
+1855:       return;
+1856:     }
+1857: 
+1858:     if (handleBedroomClock(q, raw)) return;
+1859:     if (handleMedicalDocuments(q, raw)) return;
+1860:     if (handleBedroomAuditObjects(q, raw)) return;
+1861:     if (naturalBedroomObjectCommand(q, raw)) return;
+1862:     if (extendedBedroomCommand(q, raw)) return;
+1863: 
+1864:     if (hasAny(q, ["look around", "look at room", "examine room", "check room", "describe room"])) {
+1865:       say("The bedroom is large enough to contain a bed, bedside table, wardrobe, bookcase, mirror, chair, laundry basket and his still-packed suitcase without feeling crowded. The curtained window and cold radiator occupy the outside wall. A small ensuite opens beside the wardrobe. The room looks lived in, abandoned, and then lived in again for exactly one night.", raw);
+
+--- lines 1870-1909 ---
+1870:       state.flags.bathroomVisited = true;
+1871:       setRoom("ensuite");
+1872:       return;
+1873:     }
+1874: 
+1875:     if (hasAny(q, ["close bedroom door", "shut bedroom door", "close door", "shut door"]) &&
+1876:         !hasAny(q, ["wardrobe", "closet", "ensuite", "bathroom"])) {
+1877:       if (f.bedroomDoorOpen) {
+1878:         f.bedroomDoorOpen = false;
+1879:         say("Thomas closes the bedroom door. The dark hallway disappears behind the painted wood, leaving the room quiet again.", raw);
+1880:       } else {
+1881:         say("The bedroom door is already closed.", raw);
+1882:       }
+1883:       return;
+1884:     }
+1885: 
+1886:     if (hasAny(q, ["open bedroom door", "open door"]) && !q.includes("bathroom")) {
+1887:       f.bedroomDoorOpen = true;
+1888:       f.hallSeen = true;
+1889:       if (f.flashlightHasFreshBatteries && hasItem("Emergency flashlight")) {
+1890:         say("Thomas opens the bedroom door. The upstairs hallway beyond it is considerably darker than the bedroom, and the ceiling light still does not respond. With a working flashlight available, the darkness is at least a practical problem he can solve.", raw);
+1891:       } else {
+1892:         say("Thomas opens the bedroom door. The upstairs hallway beyond it is considerably darker than the bedroom. Very little daylight reaches it from the stairwell, and the ceiling light does not respond when he tries the switch beside the door.", raw);
+1893:       }
+1894:       return;
+1895:     }
+1896: 
+1897:     if (hasAny(q, ["leave bedroom", "go hall", "go hallway", "enter hallway", "step into hall", "step into hallway"])) {
+1898:       f.bedroomDoorOpen = true;
+1899:       f.hallSeen = true;
+1900:       if (f.flashlightHasFreshBatteries && hasItem("Emergency flashlight")) f.flashlightOn = true;
+1901:       setRoom("hall");
+1902:       return;
+1903:     }
+1904: 
+1905:     // Bed
+1906:     const simpleBedQuery = simplifyCommand(q);
+1907:     const wantsLookUnderBed =
+1908:       hasAny(q, ["look under bed", "check under bed", "examine under bed", "inspect under bed", "look beneath bed", "check beneath bed"]) ||
+1909:       ["under bed", "beneath bed"].includes(simpleBedQuery);
+
+--- lines 1949-1981 ---
+1949:         say("Thomas puts the little plastic star in his pocket. He has no particular reason to keep it. Apparently that has not stopped him.", raw);
+1950:       } else {
+1951:         say("The little plastic star is already in his possession.", raw);
+1952:       }
+1953:       return;
+1954:     }
+1955: 
+1956:     if (hasAny(q, ["flip mattress", "turn mattress", "lift mattress", "look under mattress"])) {
+1957:       if (f.mattressFlipped) {
+1958:         say("The mattress is already flipped, leaving the wooden support slats exposed.", raw);
+1959:       } else {
+1960:         f.mattressFlipped = true;
+1961:         say("Thomas strips enough bedding away to get a proper grip and wrestles the mattress upright. It is heavier and more awkward than expected. The underside reveals nothing dramatic: faded fabric, manufacturing labels, one small tear near a corner and a surprising amount of dust along the frame beneath it. The mattress is now flipped unless Thomas puts it back.", raw);
+1962:       }
+1963:       return;
+1964:     }
+1965: 
+1966:     if (hasAny(q, ["look at bed", "examine bed", "check bed"])) {
+1967:       const clothingText = f.wardrobeEmptied
+1968:         ? " A substantial heap of clothing from the wardrobe now covers much of the mattress."
+1969:         : "";
+1970:       say("The bed is an old wooden double with a high headboard. Thomas changed the sheets last night, but the grey coverlet beneath them is the same one he remembers. One pillow is crushed near the headboard. The second has fallen between the mattress and the wall." + clothingText, raw);
+1971:       return;
+1972:     }
+1973: 
+1974:     if (hasAny(q, ["remove pillowcase", "take off pillowcase", "pull pillowcase", "inside pillowcase"])) {
+1975:       say("Thomas pulls the pillowcase free. The pillow underneath is slightly yellowed with age. A small amount of lint falls from the case when he turns it inside out. Nothing else does.", raw);
+1976:       return;
+1977:     }
+1978: 
+1979:     if (hasAny(q, ["hide under bed", "crawl under bed", "go under bed", "get under bed", "climb under bed", "slide under bed", "scoot under bed"])) {
+1980:       say("Thomas looks at the gap beneath the frame. He is almost forty years old. He gets down anyway. It takes considerably more effort than the idea deserved, and the space smells of dust and old wood. Nothing happens. After several uncomfortable seconds, Thomas crawls back out with dust on his shirt and considerably less dignity.", raw);
+1981:       return;
+
+--- lines 2106-2138 ---
+2106:         if (!f.brassKeyTaken && f.brassKeyLocation === "hidden") {
+2107:           f.brassKeySeen = true;
+2108:           f.brassKeyLocation = "behindTable";
+2109:         }
+2110:         const keyText = (!f.brassKeyTaken && f.brassKeyLocation === "behindTable")
+2111:           ? " beside a small brass key, both wedged in the dusty strip behind the table"
+2112:           : " in the dusty strip behind the table";
+2113:         say(`Thomas drags the bedside table several inches away from the wall. The alarm clock cord trails behind it. His phone charger lies on the floor${keyText}.`, raw);
+2114:       } else {
+2115:         say("The bedside table is already away from the wall.", raw);
+2116:       }
+2117:       return;
+2118:     }
+2119: 
+2120:     if (hasAny(q, ["look behind table", "look behind bedside table"])) {
+2121:       if (!f.tableMoved) {
+2122:         say("The table sits too close to the wall for Thomas to see behind it properly. He would have to move it.", raw);
+2123:       } else {
+2124:         const keyText = (!f.brassKeyTaken && f.brassKeyLocation === "behindTable")
+2125:           ? " and the small brass key"
+2126:           : "";
+2127:         say(`Behind the table are the outlet, dust and Thomas's phone charger${keyText}.`, raw);
+2128:       }
+2129:       return;
+2130:     }
+2131: 
+2132:     if (hasAny(q, ["take brass key", "take small key", "pick up brass key", "get brass key"])) {
+2133:       if (f.brassKeyTaken) {
+2134:         say("He already has the brass key.", raw);
+2135:       } else if (!f.brassKeySeen || f.brassKeyLocation === "hidden") {
+2136:         say("Thomas does not see a brass key in the open room.", raw);
+2137:       } else if (f.brassKeyLocation === "underBed" && !f.bedMoved) {
+2138:         say("Thomas reaches beneath the bed, but the brass key is farther in than his fingers can comfortably reach. Moving the bed would solve that problem more effectively than scraping his knuckles raw.", raw);
+
+--- lines 2141-2167 ---
+2141:         f.brassKeyLocation = "inventory";
+2142:         addInventory("Small brass key");
+2143:         say("Thomas picks up the brass key. It is small, old and considerably more worn than the keys on his house ring. He does not immediately recognize it.", raw);
+2144:       }
+2145:       return;
+2146:     }
+2147: 
+2148:     if (hasAny(q, ["take charger", "get charger", "pick up charger"])) {
+2149:       if (!f.tableMoved) {
+2150:         say("Thomas cannot see the charger from here.", raw);
+2151:       } else if (!f.chargerTaken) {
+2152:         f.chargerTaken = true;
+2153:         addInventory("Phone charger");
+2154:         say("Thomas retrieves the charger. He remembers wondering where he had put it last night. For once, the house has provided an answer that does not require interpretation.", raw);
+2155:       } else {
+2156:         say("The phone charger is already with him.", raw);
+2157:       }
+2158:       return;
+2159:     }
+2160: 
+2161:     if (hasAny(q, ["pry drawer", "use coin on drawer", "use pen on drawer", "unblock drawer"])) {
+2162:       if (f.drawerBroken) {
+2163:         say("The drawer is already broken free. Prying it now would be less repair and more vandalism after the fact.", raw);
+2164:       } else if (f.drawerOpened) {
+2165:         say("The drawer is already open.", raw);
+2166:       } else {
+2167:         f.drawerOpened = true;
+
+--- lines 2285-2384 ---
+2285:       "hide in closet", "get into closet", "go into closet", "enter closet"
+2286:     ])) {
+2287:       f.wardrobeOpened = true;
+2288:       say("Thomas moves several coats aside and steps inside. There is barely enough room to close the warped door. Darkness settles around him with the dry smell of wood and old fabric. A thin blade of daylight remains visible through the warped edge. Nothing happens. Thomas opens the wardrobe again.", raw);
+2289:       return;
+2290:     }
+2291: 
+2292:     // Bookcase / box / photo
+2293:     if (hasAny(q, ["look at bookcase", "examine bookcase", "search bookcase"])) {
+2294:       say("The narrow bookcase contains novels, magazines, an old atlas, a home-repair manual, a dictionary and a photo album. A ceramic dish on the middle shelf holds loose change, a paperclip, a button and an old key. A small wooden box with a brass lock sits on the upper shelf.", raw);
+2295:       return;
+2296:     }
+2297: 
+2298:     if (hasAny(q, ["open wooden box", "open box"])) {
+2299:       if (f.boxUnlocked) {
+2300:         say("The wooden box is open. Inside are the folded house plan, several spare household keys and the trimmed photograph of Thomas and Jennifer, unless he has already taken them.", raw);
+2301:       } else if (hasItem("Small brass key")) {
+2302:         say("The lid is locked. The small brass key in Thomas's possession looks about the right size.", raw);
+2303:       } else {
+2304:         say("The lid does not move. A small brass lock is set into the front.", raw);
+2305:       }
+2306:       return;
+2307:     }
+2308: 
+2309:     if (hasAny(q, ["use brass key on box", "unlock box", "unlock wooden box", "key on box"])) {
+2310:       if (!hasItem("Small brass key")) {
+2311:         say("Thomas does not have a key that looks likely to fit.", raw);
+2312:       } else if (!f.boxUnlocked) {
+2313:         f.boxUnlocked = true;
+2314:         say("The brass key fits. Inside are a folded architectural plan of the house, several spare household keys and a photograph of Thomas and Jennifer standing in the back garden.", raw);
+2315:       } else {
+2316:         say("The box is already unlocked.", raw);
+2317:       }
+2318:       return;
+2319:     }
+2320: 
+2321:     if (hasAny(q, ["take floor plan", "take floor plans", "take house plan", "take plans", "get floor plan", "pick up floor plan"])) {
+2322:       if (!f.boxUnlocked) {
+2323:         say("Thomas has not found any floor plan in the open room.", raw);
+2324:       } else if (!f.floorPlanTaken) {
+2325:         f.floorPlanTaken = true;
+2326:         addInventory("Folded house floor plan");
+2327:         say("Thomas unfolds it enough to confirm what it is. Ground floor. Upper floor. Basement. Attic. Room measurements. Nothing immediately unusual. He folds it again and keeps it.", raw);
+2328:         openFloorPlanPanel();
+2329:       } else {
+2330:         say("The floor plan is already with him.", raw);
+2331:         openFloorPlanPanel();
+2332:       }
+2333:       return;
+2334:     }
+2335: 
+2336:     if (hasAny(q, ["take photograph", "take photo", "get photo"])) {
+2337:       if (!f.boxUnlocked) {
+2338:         say("Thomas has not found a loose photograph here.", raw);
+2339:       } else if (!f.photoTaken) {
+2340:         f.photoTaken = true;
+2341:         addInventory("Trimmed photograph of Thomas and Jennifer");
+2342:         say("Thomas takes the photograph from the wooden box.", raw);
+2343:       } else {
+2344:         say("He already has the photograph.", raw);
+2345:       }
+2346:       return;
+2347:     }
+2348: 
+2349:     if (hasAny(q, ["look at photograph", "examine photograph", "look at photo", "examine photo"])) {
+2350:       if (!f.boxUnlocked && !hasItem("Trimmed photograph of Thomas and Jennifer")) {
+2351:         say("Thomas does not have a loose photograph to examine.", raw);
+2352:       } else {
+2353:         state.focus = "photo";
+2354:         f.photoExamined = true;
+2355:         say("Thomas looks more carefully at the photograph. The cut along the right edge is uneven. Jennifer's right arm continues toward the missing side, positioned as though it had been around someone standing beside her. Someone has been physically cut out of the picture. Thomas cannot remember who, or why.", raw);
+2356:       }
+2357:       return;
+2358:     }
+2359: 
+2360:     if (hasAny(q, ["look at empty frame", "examine empty frame", "inspect empty frame", "check empty frame"])) {
+2361:       state.focus = "emptyFrame";
+2362:       f.emptyFrameExamined = true;
+2363:       say("The smaller frame hangs slightly crooked. The glass is intact, but there is no photograph inside it. The cardboard backing is still held in place by the little metal tabs. Nothing on the front explains why the frame is empty.", raw);
+2364:       return;
+2365:     }
+2366: 
+2367:     if (hasAny(q, ["put photo in frame", "put photograph in frame", "try photograph in frame", "try photo in frame"])) {
+2368:       if (!hasItem("Trimmed photograph of Thomas and Jennifer") && !f.boxUnlocked) {
+2369:         say("Thomas has no loose photograph that seems relevant.", raw);
+2370:       } else {
+2371:         f.photoTriedInFrame = true;
+2372:         addJournal("The trimmed photograph from the wooden box is the right height for the empty bedroom frame, but several centimetres too narrow. It may once have been a larger photograph.");
+2373:         say("Thomas removes the frame backing and tries the photograph. It fits vertically. Horizontally, it is too narrow by several centimetres. The photograph that belonged in the frame was larger. Thomas looks at the cut edge again.", raw);
+2374:       }
+2375:       return;
+2376:     }
+2377: 
+2378:     // Scratches
+2379:     if (hasAny(q, ["look at scratches", "examine scratches", "check scratches"])) {
+2380:       f.scratchesExamined = true;
+2381:       say("Three narrow scratches cut through the paint near the bottom of the bedroom door. They are close together and roughly parallel. The exposed wood beneath them has smoothed with age.", raw);
+2382:       return;
+2383:     }
+2384: 
+
+--- lines 2416-2458 ---
+2416:       } else {
+2417:         say("The curtains are already losing their relationship with the wall.", raw);
+2418:       }
+2419:       return;
+2420:     }
+2421: 
+2422:     if (hasAny(q, ["open window", "unlock window"])) {
+2423:       f.windowOpen = true;
+2424:       f.windowLocked = false;
+2425:       say("The latch lifts with some resistance. Thomas pushes the window upward. Cold air enters carrying the smell of wet leaves, damp soil and distant traffic.", raw);
+2426:       return;
+2427:     }
+2428: 
+2429:     if (hasAny(q, ["close window", "shut window"])) {
+2430:       f.windowOpen = false;
+2431:       f.windowLocked = true;
+2432:       f.windowWider = false;
+2433:       say("Thomas closes and latches the window.", raw);
+2434:       return;
+2435:     }
+2436: 
+2437:     if (hasAny(q, ["yell out window", "yell outside"])) {
+2438:       if (!f.windowOpen) {
+2439:         say("The window is closed. Thomas could open it first if he is determined to involve the neighbourhood in his morning.", raw);
+2440:       } else {
+2441:         say("Thomas leans toward the opening and calls, “Hello?” His voice carries across the wet garden. A bird somewhere beyond the fence takes offense and leaves. Nobody answers.", raw);
+2442:       }
+2443:       return;
+2444:     }
+2445: 
+2446:     if (hasAny(q, ["shout outside", "shout out window"])) {
+2447:       if (!f.windowOpen) {
+2448:         say("Thomas faces the closed window. Shouting through glass seems unnecessarily theatrical. He can open it first.", raw);
+2449:       } else {
+2450:         say("Thomas raises his voice toward the garden. “Anyone there?” The words carry over the patio and wet lawn toward the rear fence. Somewhere beyond the trees a dog barks once, apparently at something unrelated. No person answers.", raw);
+2451:       }
+2452:       return;
+2453:     }
+2454: 
+2455:     if (hasAny(q, ["sit in chair", "sit on chair"])) {
+2456:       say("Thomas moves his coat and sits. From here he can see most of the bedroom, although the bed blocks part of the floor near the far wall. The chair creaks once beneath him and settles. Nothing else happens.", raw);
+2457:       return;
+2458:     }
+
+--- lines 2623-2641 ---
+2623: 
+2624:   function extendedBedroomCommand(q, raw) {
+2625:     const f = state.flags;
+2626: 
+2627:     if (hasAny(q, ["look around", "look at room", "examine room", "check room", "describe room"])) {
+2628:       const changed = [];
+2629:       if (f.bedMoved) changed.push("The bed has been shoved away from the wall.");
+2630:       if (f.mattressFlipped) changed.push("The mattress is flipped and the bedding is disturbed.");
+2631:       if (f.pillowFort) changed.push("A poor excuse for a pillow fort occupies part of the bed.");
+2632:       if (f.wardrobeEmptied) changed.push("Clothing from the wardrobe is piled across the bed.");
+2633:       if (f.curtainsDown) changed.push(f.bothCurtainsDown ? "Both curtains have been pulled down." : "One curtain hangs partly from a damaged rail.");
+2634:       if (f.chairBarricade) changed.push("The chair is wedged beneath the bedroom doorknob.");
+2635:       if (f.mirrorBedroomTurned) changed.push("The full-length mirror faces the wall.");
+2636:       else if (f.mirrorCoveredBedroom || f.coatOverMirror) changed.push("The full-length mirror is covered.");
+2637:       if (f.tableMoved) changed.push("The bedside table has been dragged away from the wall.");
+2638:       if (f.drawerBroken) changed.push("The bedside drawer lies broken on the floor.");
+2639:       if (f.glassBroken) changed.push("Broken glass remains near the wall.");
+2640:       if (f.bookUnderTable) changed.push("A paperback is wedged beneath one table leg.");
+2641:       if (state.outside && state.outside.length) {
+
+--- lines 2643-2661 ---
+2643:         changed.push(`Thomas has also thrown ${outsideSummary.join(", ")}.`);
+2644:       }
+2645:       const extra = changed.length ? ` The room also bears the consequences of his decisions: ${changed.join(" ")}` : "";
+2646:       say("The bedroom contains the old wooden bed, bedside table, wardrobe, bookcase, full-length mirror, chair, laundry basket, his suitcase, the curtained window and cold radiator, with the small ensuite opening beside the wardrobe. Ordinary belongings still fill the room densely enough that no single object announces itself as important." + extra, raw);
+2647:       return true;
+2648:     }
+2649: 
+2650:     if (f.chairBarricade && hasAny(q, ["leave bedroom", "open bedroom door", "go hall", "go hallway", "enter hallway", "open door"]) && !q.includes("bathroom")) {
+2651:       say("Thomas tries the bedroom door. The chair he deliberately wedged beneath the knob prevents it from opening more than an inch. He will need to remove his own barricade first.", raw);
+2652:       return true;
+2653:     }
+2654: 
+2655:     // General searching and body-level commands.
+2656:     if (hasAny(q, ["search room", "search bedroom", "search everything"])) {
+2657:       say("Thomas considers where he would even begin. There are enough drawers, pockets, shelves and badly chosen pieces of furniture in the bedroom to make ‘search the room’ a project rather than an action. He will need to be more specific.", raw);
+2658:       return true;
+2659:     }
+2660: 
+2661:     if (q === "hide" || q === "hide somewhere") {
+
+--- lines 2737-2755 ---
+2737:         say("Thomas stretches until his shoulder presses against the wooden frame, but the pale object remains several inches beyond his fingertips. He could probably reach it if the bed were moved.", raw);
+2738:       }
+2739:       return true;
+2740:     }
+2741: 
+2742:     if (hasAny(q, ["strip bed", "remove sheets", "take sheets off", "pull sheets off"])) {
+2743:       f.bedSheetsStripped = true;
+2744:       say("Thomas pulls the clean sheets away from the mattress. Underneath them is the old grey coverlet, and beneath that a faded mattress with a pale brown stain near one corner. He remembers the stain after staring at it for several seconds. Tea. Jennifer had laughed so hard when he dropped the mug that she spilled hers as well. The memory is ordinary enough that Thomas finds himself standing still with the sheet in his hands.", raw);
+2745:       return true;
+2746:     }
+2747: 
+2748:     if (hasAny(q, ["put sheets back", "remake bed", "make bed"])) {
+2749:       if (!f.bedSheetsStripped) {
+2750:         say("The clean sheets are already on the bed. Thomas decides not to remake something he has not unmade.", raw);
+2751:       } else {
+2752:         f.bedSheetsStripped = false;
+2753:         say("Thomas remakes the bed badly. Jennifer would have redone it. He leaves it alone.", raw);
+2754:       }
+2755:       return true;
+
+--- lines 2794-2850 ---
+2794: 
+2795:     if (hasAny(q, ["put pillow over mirror", "put pillow on mirror"])) {
+2796:       f.pillowOnMirror = true;
+2797:       say("Thomas tries to balance the pillow against the mirror. It falls off almost immediately. Thomas considers gravity vindicated.", raw);
+2798:       return true;
+2799:     }
+2800: 
+2801:     if (hasAny(q, ["sleep on flipped mattress", "lie on flipped mattress"])) {
+2802:       if (!f.mattressFlipped) {
+2803:         say("The mattress has not been flipped.", raw);
+2804:       } else {
+2805:         f.mattressSleepTried = true;
+2806:         say("Thomas lies down. The other side is noticeably firmer and smells faintly of old fabric. He lasts less than a minute. “This was not an improvement.”", raw);
+2807:       }
+2808:       return true;
+2809:     }
+2810: 
+2811:     if (hasAny(q, ["flip mattress again", "put mattress back", "turn mattress back"])) {
+2812:       if (!f.mattressFlipped) {
+2813:         say("The mattress is already the right way up.", raw);
+2814:       } else {
+2815:         f.mattressFlipped = false;
+2816:         say("Thomas puts the mattress back. He has now performed considerably more mattress maintenance than the day required.", raw);
+2817:       }
+2818:       return true;
+2819:     }
+2820: 
+2821:     if (hasAny(q, ["look under flipped mattress", "look at bed slats", "examine bed slats", "look at support slats", "look at slat", "examine slat", "inspect slat", "check slat", "look at support slat"])) {
+2822:       if (!f.mattressFlipped) {
+2823:         say("Thomas would need to lift or flip the mattress to see the support slats properly.", raw);
+2824:       } else if (f.mattressScratchCleaned) {
+2825:         say("The dust has been brushed away from one wooden support slat. Two very faint letters show in the cleaned patch: EM. They were scratched by hand, shallow and uneven. Thomas cannot tell what they were meant to be.", raw);
+2826:       } else {
+2827:         f.mattressScratchSeen = true;
+2828:         say("With the mattress out of the way, the wooden support slats are exposed. One slat bears a few shallow scratches beneath the dust. Thomas leans closer, but the marks are too faint to make out clearly.", raw);
+2829:       }
+2830:       return true;
+2831:     }
+2832: 
+2833:     if (hasAny(q, ["clean slat", "clean slate", "wipe slat", "clean dust off slat", "wipe dust off slat", "brush dust off slat"]) ||
+2834:         (q === "clean dust" && f.mattressFlipped)) {
+2835:       if (!f.mattressFlipped) {
+2836:         say("Thomas would need to expose the mattress supports before cleaning anything off them.", raw);
+2837:       } else {
+2838:         f.mattressScratchSeen = true;
+2839:         f.mattressScratchCleaned = true;
+2840:         say("Thomas brushes the dust away with his fingertips. Two very faint letters emerge in the wood: EM. The marks are shallow and uneven, clearly made by hand. Initials, half a word, some old private notation. It could mean anything.", raw);
+2841:       }
+2842:       return true;
+2843:     }
+2844: 
+2845:     // Curtains and window.
+2846:     if (hasAny(q, ["pull curtains down", "rip curtains down", "yank curtains down", "tear curtains down"])) {
+2847:       f.curtainPullAttempts += 1;
+2848:       if (f.curtainsDown && !f.bothCurtainsDown && f.curtainPullAttempts >= 3) {
+2849:         f.bothCurtainsDown = true;
+2850:         f.roomMessCount += 1;
+
+--- lines 2906-3011 ---
+2906:       if (outsideLocation("Alarm clock") === "stonePatio") thrownVisible.push("The alarm clock is still visible on the wet stone patio below, its casing split at one corner.");
+2907:       const thrownText = thrownVisible.length ? ` ${thrownVisible.join(" ")}` : "";
+2908:       say("From the second floor Thomas can see most of the back garden. The stone patio lies directly below, followed by a rain-dark lawn that badly needs cutting and the remains of an overgrown garden bed. Mature trees break up the view toward the rear of the property. Beyond them sits the detached garage, its wet roof clearly visible from this height. A wooden fence runs behind it, with a narrow glimpse of the rear lane and neighbouring property through the branches. Nothing appears to be watching him." + thrownText, raw);
+2909:       return true;
+2910:     }
+2911: 
+2912:     if (hasAny(q, ["open window wider", "raise window higher"])) {
+2913:       f.windowOpen = true;
+2914:       f.windowLocked = false;
+2915:       f.windowWider = true;
+2916:       say("Thomas pushes the window as far as the frame allows. The room cools quickly.", raw);
+2917:       return true;
+2918:     }
+2919: 
+2920:     if (q === "lock window" || q === "latch window") {
+2921:       if (f.windowOpen) {
+2922:         say("Thomas cannot lock the window while it is open.", raw);
+2923:       } else {
+2924:         f.windowLocked = true;
+2925:         say("Thomas checks the latch. Locked.", raw);
+2926:       }
+2927:       return true;
+2928:     }
+2929: 
+2930:     if (q === "unlock window") {
+2931:       f.windowLocked = false;
+2932:       say("Thomas lifts the latch.", raw);
+2933:       return true;
+2934:     }
+2935: 
+2936:     if (hasAny(q, ["yell jennifer out window", "shout jennifer out window", "call jennifer out window"])) {
+2937:       if (!f.windowOpen) {
+2938:         say("The window is closed.", raw);
+2939:       } else {
+2940:         say("Thomas grips the window frame. “Jennifer!” The name carries farther than he expected. For several seconds he listens. Only distant traffic and dripping gutters answer. He closes his mouth tightly and steps back.", raw);
+2941:       }
+2942:       return true;
+2943:     }
+2944: 
+2945:     if (hasAny(q, ["shout help", "yell help"])) {
+2946:       say("Thomas nearly does. Then stops. Nobody is currently threatening him. Standing at a window yelling for help because his bedside drawer is stuck would be difficult to explain.", raw);
+2947:       return true;
+2948:     }
+2949: 
+2950:     if (hasAny(q, ["whistle out window", "whistle outside"])) {
+2951:       if (!f.windowOpen) {
+2952:         say("Thomas whistles toward the closed window. The glass contributes nothing.", raw);
+2953:       } else {
+2954:         say("Thomas whistles. Several seconds later, a bird answers from somewhere beyond the fence. Thomas whistles again. The bird does not.", raw);
+2955:       }
+2956:       return true;
+2957:     }
+2958: 
+2959:     if (all(q, ["throw", "pillow"]) && hasAny(q, ["window", "outside"])) {
+2960:       if (!f.windowOpen) {
+2961:         say("The window is closed. Thomas is not throwing a pillow through the glass.", raw);
+2962:       } else if (isOutside("Bedroom pillow")) {
+2963:         say("The pillow is already outside.", raw);
+2964:       } else {
+2965:         f.pillowLocation = "outside";
+2966:         putOutside("Bedroom pillow", "backLawn");
+2967:         say("Thomas throws the pillow out of the window. It clears the stone patio directly below and flops onto the wet lawn a few yards beyond it. “That was clever.”", raw);
+2968:       }
+2969:       return true;
+2970:     }
+2971: 
+2972:     if (all(q, ["throw", "slipper"]) && hasAny(q, ["window", "outside"])) {
+2973:       if (!f.windowOpen) {
+2974:         say("The window is closed.", raw);
+2975:       } else if (isOutside("Bedroom slipper")) {
+2976:         say("That slipper is already outside on the wet lawn. Thomas cannot throw it out the window twice without retrieving it first.", raw);
+2977:       } else {
+2978:         f.slipperLocation = "outside";
+2979:         putOutside("Bedroom slipper", "backLawn");
+2980:         say("The slipper arcs over the stone patio and lands in the wet grass a few feet beyond the patio edge. Its matching partner remains upstairs. Thomas has successfully created a long-distance footwear problem.", raw);
+2981:       }
+2982:       return true;
+2983:     }
+2984: 
+2985:     if (all(q, ["throw", "clock"]) && hasAny(q, ["window", "outside"])) {
+2986:       if (!f.windowOpen) {
+2987:         say("The window is closed. Thomas is not hurling an alarm clock through it.", raw);
+2988:       } else if (f.clockLocation === "outside") {
+2989:         say("The alarm clock is already outside.", raw);
+2990:       } else {
+2991:         f.clockLocation = "outside";
+2992:         f.clockBroken = true;
+2993:         putOutside("Alarm clock", "stonePatio");
+2994:         say("Thomas throws the alarm clock out of the window. It drops to the wet stone patio below and hits hard enough for the casing to split at one corner. He can still see it near the patio edge. The bedroom has become marginally less mysterious and significantly less equipped with clocks.", raw);
+2995:       }
+2996:       return true;
+2997:     }
+2998: 
+2999:     if (all(q, ["throw", "star"]) && hasAny(q, ["window", "outside"])) {
+3000:       if (!f.windowOpen) {
+3001:         say("The window is closed.", raw);
+3002:       } else if (!f.starTaken) {
+3003:         say("Thomas would need to have the plastic star first.", raw);
+3004:       } else {
+3005:         f.starTaken = false;
+3006:         f.starLocation = "outside";
+3007:         putOutside("Glow-in-the-dark plastic star", "oldGardenBed");
+3008:         say("Thomas tosses the little plastic star out of the window. It drops into the overgrown garden bed beyond the patio and disappears among dead stems and wet leaves. Whatever purpose it had, it now has a substantially larger search area.", raw);
+3009:       }
+3010:       return true;
+3011:     }
+
+--- lines 3270-3288 ---
+3270:     }
+3271: 
+3272:     if (hasAny(q, ["listen to radiator", "listen at radiator"])) {
+3273:       say("Thomas leans closer. At first he hears nothing. Then somewhere inside the pipework comes a faint metallic click. Perfectly ordinary. Probably.", raw);
+3274:       return true;
+3275:     }
+3276: 
+3277:     // Books, coins, old key, photo album.
+3278:     if (hasAny(q, ["take old key", "get old key", "pick up old key"])) {
+3279:       if (!f.oldKeyTaken) {
+3280:         f.oldKeyTaken = true;
+3281:         addInventory("Old useless key");
+3282:         say("Thomas adds the old key to his inventory. It looks useful. It is not.", raw);
+3283:       } else {
+3284:         say("Thomas already has the old key.", raw);
+3285:       }
+3286:       return true;
+3287:     }
+3288: 
+
+--- lines 3298-3327 ---
+3298:         } else {
+3299:           say("Wrong key.", raw);
+3300:         }
+3301:       }
+3302:       return true;
+3303:     }
+3304: 
+3305:     if (hasAny(q, ["open photo album", "look at photo album", "look at album", "open album"])) {
+3306:       f.photoAlbumSeen = true;
+3307:       say("The album contains photographs accumulated over years. Thomas and Jennifer at restaurants. Jennifer on a beach. Thomas holding a badly assembled shelf against the kitchen wall while Jennifer apparently documented the failure instead of helping. Birthdays. Holidays. A Christmas tree leaning slightly to one side. Several spaces in the album are empty.", raw);
+3308:       return true;
+3309:     }
+3310: 
+3311:     if (hasAny(q, ["look at empty spaces", "check missing photos", "look at missing photos", "check photo corners"])) {
+3312:       if (!f.photoAlbumSeen) {
+3313:         say("Thomas would need to open the photo album first.", raw);
+3314:       } else {
+3315:         f.photoAlbumGapsSeen = true;
+3316:         say("The adhesive corners remain where photographs once sat. Thomas does not remember removing them. There are no captions.", raw);
+3317:       }
+3318:       return true;
+3319:     }
+3320: 
+3321:     if (hasAny(q, ["throw book", "throw paperback"]) && !q.includes("door")) {
+3322:       say("Thomas throws the paperback onto the bed. Literature survives.", raw);
+3323:       return true;
+3324:     }
+3325: 
+3326:     if (hasAny(q, ["throw book at door", "throw paperback at door"])) {
+3327:       say("The paperback strikes the door and falls open on the floor. The door remains emotionally unaffected.", raw);
+
+--- lines 3450-3468 ---
+3450:     if (hasAny(q, ["put star under pillow"])) {
+3451:       if (!f.starTaken) say("Thomas does not have the star.", raw);
+3452:       else say("Thomas slides it beneath the pillow. Nothing happens. If he sleeps on it later, the plastic edge will almost certainly punish this decision.", raw);
+3453:       return true;
+3454:     }
+3455: 
+3456:     if (hasAny(q, ["put old key in frame"])) {
+3457:       say("Thomas places the key against the backing. It falls immediately. The frame remains stubbornly committed to photographs.", raw);
+3458:       return true;
+3459:     }
+3460: 
+3461:     if (hasAny(q, ["put shopping list in frame", "frame shopping list"])) {
+3462:       if (!f.shoppingListTaken) {
+3463:         say("Thomas would need Jennifer's shopping list first.", raw);
+3464:       } else {
+3465:         f.shoppingListFramed = true;
+3466:         say("Thomas puts Jennifer's shopping list inside the empty frame. Milk, detergent, bananas, cereal and toothpaste now occupy a place of considerable visual importance. He looks at it. “This feels disrespectful.”", raw);
+3467:       }
+3468:       return true;
+
+--- lines 3497-3515 ---
+3497:       "remove clothes from wardrobe", "remove clothing from wardrobe", "pull clothes out of wardrobe",
+3498:       "take clothes out of closet", "remove clothes from closet"
+3499:     ])) {
+3500:       if (!f.wardrobeEmptied) {
+3501:         f.wardrobeEmptied = true;
+3502:         f.wardrobeOpened = true;
+3503:         f.roomMessCount += 1;
+3504:         say("Thomas begins removing clothing and piling it on the bed. The task takes long enough for him to regret beginning it, but eventually a substantial portion of the wardrobe has migrated into a heap across the mattress.", raw);
+3505:       } else {
+3506:         say("The wardrobe has already been subjected to this treatment.", raw);
+3507:       }
+3508:       return true;
+3509:     }
+3510: 
+3511:     if (hasAny(q, ["close wardrobe while inside", "close wardrobe inside"])) {
+3512:       say("Thomas closes the warped door around himself. After roughly ten seconds, this remains a wardrobe. He opens it again.", raw);
+3513:       return true;
+3514:     }
+3515: 
+
+--- lines 3523-3548 ---
+3523:     if (hasAny(q, ["look behind frame", "check behind frame"])) {
+3524:       say("Nothing is hidden behind it.", raw);
+3525:       return true;
+3526:     }
+3527: 
+3528:     if (hasAny(q, ["open frame", "open empty frame"])) {
+3529:       f.frameOpened = true;
+3530:       say("Thomas bends back the small metal tabs holding the backing in place. There is no photograph. A date has been written lightly on the cardboard backing. Five years ago. Nothing else.", raw);
+3531:       return true;
+3532:     }
+3533: 
+3534:     // Clock details and abuse.
+3535:     if (q === "unplug clock" || q === "unplug alarm clock") {
+3536:       f.clockUnplugged = true;
+3537:       say("Thomas pulls the plug from the outlet. The clock reacts exactly as much as it did while plugged in.", raw);
+3538:       return true;
+3539:     }
+3540: 
+3541:     if (q === "shake clock" || q === "shake alarm clock") {
+3542:       f.clockShakeCount += 1;
+3543:       say("Something rattles faintly inside. It does not sound like a loose battery.", raw);
+3544:       return true;
+3545:     }
+3546: 
+3547:     if (hasAny(q, ["break clock", "smash clock"]) && !q.includes("wall")) {
+3548:       if (f.clockBroken) {
+
+--- lines 3592-3615 ---
+3592:     if (hasAny(q, ["wear old shirt", "put on old shirt"])) {
+3593:       say("Thomas changes into the old shirt. It still fits, although less comfortably than he remembers.", raw);
+3594:       return true;
+3595:     }
+3596: 
+3597:     if (hasAny(q, ["open suitcase", "unpack suitcase", "search suitcase"])) {
+3598:       if (f.flashlightTaken || hasItem("Emergency flashlight")) {
+3599:         say("Inside are several changes of clothes, toiletries, medication, spare shoes, his wallet, a charger adapter and a paperback he bought during his stay. The outside side pocket is empty now; Thomas already removed the emergency flashlight from it. Everything else is where he expects it to be. This is unexpectedly comforting.", raw);
+3600:       } else if (f.flashlightSeen) {
+3601:         say("Inside are several changes of clothes, toiletries, medication, spare shoes, his wallet, a charger adapter and a paperback he bought during his stay. The small emergency flashlight is still in the outside side pocket where Thomas found it. Everything else is where he expects it to be.", raw);
+3602:       } else {
+3603:         f.flashlightSeen = true;
+3604:         say("Inside are several changes of clothes, toiletries, medication, spare shoes, his wallet, a charger adapter and a paperback he bought during his stay. In the outside side pocket Thomas finds a small black emergency flashlight. He presses the switch. Nothing happens. Everything else is where he expects it to be. This is unexpectedly comforting.", raw);
+3605:       }
+3606:       return true;
+3607:     }
+3608: 
+3609:     if (hasAny(q, ["take all medication", "take all meds", "overdose"])) {
+3610:       say("Thomas stops. “No.” This is a hard refusal. He follows the dosage instructions.", raw);
+3611:       return true;
+3612:     }
+3613: 
+3614:     // Coat and pillowcase nonsense.
+3615:     if (hasAny(q, ["put on coat", "wear coat"])) {
+
+--- lines 3730-3748 ---
+3730: 
+3731:     if (isLook && hasAny(q, ["towels", "towel", "towel rail"])) {
+3732:       say("Two towels hang near the door, one grey and one pale blue. Both are stiff from having been left untouched for too long.", raw);
+3733:       return true;
+3734:     }
+3735: 
+3736:     if (isLook && hasAny(q, ["frosted window", "bathroom window", "window"])) {
+3737:       say(`The small frosted window above the toilet admits grey daylight without offering much of a view. ${f.bathroomWindowOpen ? "It is open, letting cold air into the room." : "A simple latch holds it closed."}`, raw);
+3738:       return true;
+3739:     }
+3740: 
+3741:     if (isLook && hasAny(q, ["cupboard", "cabinet under sink", "cupboard under sink", "under sink"])) {
+3742:       say(f.bathroomCupboardOpen
+3743:         ? "The cupboard beneath the sink is open. Cleaning products, spare toilet paper, a plunger, folded cloths and the small plastic step stool occupy the cramped space."
+3744:         : "Two painted cupboard doors sit beneath the sink. Moisture has swollen the wood enough that one hangs slightly crooked.", raw);
+3745:       return true;
+3746:     }
+3747: 
+3748:     if (isLook && hasAny(q, ["toothbrushes", "toothbrush"])) {
+
+--- lines 3858-3897 ---
+3858:       f.bathroomTowelTaken = true;
+3859:       addInventory("Bathroom towel");
+3860:       say("Thomas takes one of the towels from the rail.", raw);
+3861:       return true;
+3862:     }
+3863: 
+3864:     if (hasAny(q, ["open bathroom window", "open frosted window", "open window"])) {
+3865:       f.bathroomWindowOpen = true;
+3866:       say("Thomas unlatches the small frosted window and pushes it outward. Cold air enters. From this angle he can see only a narrow strip of side yard and the upper branches of a tree.", raw);
+3867:       return true;
+3868:     }
+3869: 
+3870:     if (hasAny(q, ["close bathroom window", "close frosted window", "close window"])) {
+3871:       f.bathroomWindowOpen = false;
+3872:       say("Thomas closes and latches the frosted window.", raw);
+3873:       return true;
+3874:     }
+3875: 
+3876:     if (hasAny(q, ["yell out bathroom window", "shout out bathroom window", "yell out window"])) {
+3877:       if (!f.bathroomWindowOpen) {
+3878:         say("The frosted window is closed. Thomas would need to open it first.", raw);
+3879:       } else {
+3880:         say("Thomas leans toward the small opening and calls, “Hello?” His voice carries awkwardly down the side of the house. A few seconds later, somewhere nearby, a dog begins barking. “Excellent.”", raw);
+3881:       }
+3882:       return true;
+3883:     }
+3884: 
+3885:     if (hasAny(q, ["plug in hair dryer", "plug hair dryer in"])) {
+3886:       say("Thomas plugs the hair dryer into the bathroom outlet.", raw);
+3887:       return true;
+3888:     }
+3889: 
+3890:     if (hasAny(q, ["turn on hair dryer", "use hair dryer", "test hair dryer"])) {
+3891:       say("The hair dryer starts with a loud electric rush. It works normally.", raw);
+3892:       return true;
+3893:     }
+3894: 
+3895:     if (hasAny(q, ["dry floor with hair dryer", "use hair dryer on floor"])) {
+3896:       if (!f.bathroomFloorWet) {
+3897:         say("The floor is already dry enough that this would mostly be an exercise in noise.", raw);
+
+--- lines 3901-3919 ---
+3901:       }
+3902:       return true;
+3903:     }
+3904: 
+3905:     return false;
+3906:   }
+3907: 
+3908:   function hallCommand(q, raw) {
+3909:     const f = state.flags;
+3910: 
+3911:     if (hasAny(q, ["look around", "look at hall", "look at hallway", "examine hall", "examine hallway", "check hallway", "describe hall"])) {
+3912:       say("The upstairs landing is narrow and dark. A ceiling fixture hangs overhead, with a wall switch beside the master bedroom door. Several other doors continue along the hall, but weak daylight from the stairwell does little for the far end.", raw);
+3913:       return;
+3914:     }
+3915: 
+3916:     if (hasAny(q, ["turn on hall light", "turn hall light on", "turn on light", "switch on light", "flip light switch", "use light switch", "try light switch"])) {
+3917:       say("Thomas flips the hall switch. Nothing. The ceiling fixture remains dark.", raw);
+3918:       return;
+3919:     }
+
+--- lines 3949-3967 ---
+3949:       } else {
+3950:         say("The flashlight is already off.", raw);
+3951:       }
+3952:       return;
+3953:     }
+3954: 
+3955:     if (hasAny(q, ["go bedroom", "go to bedroom", "enter bedroom", "return bedroom", "back to bedroom", "leave hallway", "leave hall"])) {
+3956:       f.bedroomDoorOpen = true;
+3957:       setRoom("bedroom");
+3958:       return;
+3959:     }
+3960: 
+3961:     if (hasAny(q, ["go farther", "go down hall", "walk down hall", "continue down hall", "explore hallway"])) {
+3962:       if (!f.flashlightOn) {
+3963:         say("Thomas can make out the landing, but not enough of the far end to wander around it sensibly. A working light would help.", raw);
+3964:       } else {
+3965:         say("The flashlight makes the rest of the landing readable, but Thomas stops at the cluster of closed doors. He has not decided which room to deal with next.", raw);
+3966:       }
+3967:       return;
+
+--- lines 4279-4337 ---
+4279:       say("Thomas understands the idea. He is not doing that.", raw);
+4280:       return;
+4281:     }
+4282: 
+4283:     say("Thomas tries to make sense of the idea. Nothing useful comes of it.", raw);
+4284:   }
+4285: 
+4286:   function openFloorPlanPanel() {
+4287:     navButtons.forEach(btn => btn.classList.remove("active"));
+4288:     drawer.classList.add("open");
+4289:     drawerTitle.textContent = "House Floor Plan";
+4290:     drawerBody.innerHTML = `
+4291:       <div class="floorplan-note">Old architectural plan. Room labels are Thomas's present reading of the drawing.</div>
+4292:       <div class="floorplan-grid">
+4293:         <section class="floorplan-floor">
+4294:           <h3>Ground Floor</h3>
+4295:           <div class="floorplan-room"><b>Living Room</b><span>14 × 18</span></div>
+4296:           <div class="floorplan-room"><b>Dining Room</b><span>14 × 15</span></div>
+4297:           <div class="floorplan-room"><b>Kitchen</b><span>14 × 15</span></div>
+4298:           <div class="floorplan-room"><b>Sunroom / Family Room</b><span>14 × 16</span></div>
+4299:           <div class="floorplan-room"><b>Central Hall</b><span>10 × 16</span></div>
+4300:           <div class="floorplan-room"><b>Mudroom</b><span>8 × 10</span></div>
+4301:           <div class="floorplan-room"><b>Vestibule</b><span>6 × 8</span></div>
+4302:           <div class="floorplan-room"><b>Pantry</b><span>5 × 6</span></div>
+4303:           <div class="floorplan-room"><b>Powder Room</b><span>5 × 6</span></div>
+4304:         </section>
+4305:         <section class="floorplan-floor">
+4306:           <h3>Upper Floor</h3>
+4307:           <div class="floorplan-room"><b>Master Bedroom</b><span>14 × 16</span></div>
+4308:           <div class="floorplan-room"><b>Ensuite</b><span>8 × 10</span></div>
+4309:           <div class="floorplan-room"><b>Guest Bedroom</b><span>13 × 15</span></div>
+4310:           <div class="floorplan-room"><b>Storage</b><span>12 × 15</span></div>
+4311:           <div class="floorplan-room"><b>Main Bathroom</b><span>8 × 10</span></div>
+4312:           <div class="floorplan-room"><b>Landing / Hall</b><span>approx. 10 × 14</span></div>
+4313:           <div class="floorplan-room"><b>Linen Closet</b><span>4 × 6</span></div>
+4314:         </section>
+4315:         <section class="floorplan-floor">
+4316:           <h3>Basement</h3>
+4317:           <div class="floorplan-room"><b>Utility / Laundry</b><span>12 × 14</span></div>
+4318:           <div class="floorplan-room"><b>Workshop</b><span>14 × 14</span></div>
+4319:           <div class="floorplan-room"><b>Storage</b><span>26 × 18</span></div>
+4320:         </section>
+4321:         <section class="floorplan-floor">
+4322:           <h3>Attic</h3>
+4323:           <div class="floorplan-room"><b>Office</b><span>14 × 17</span></div>
+4324:           <div class="floorplan-room"><b>Attic Storage</b><span>14 × 16</span></div>
+4325:           <div class="floorplan-room"><b>Box / Half Bath</b><span>8 × 10</span></div>
+4326:           <div class="floorplan-room"><b>Eaves</b><span>unmeasured</span></div>
+4327:         </section>
+4328:       </div>
+4329:     `;
+4330:   }
+4331: 
+4332:   function openPanel(type) {
+4333:     navButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.panel === type));
+4334:     drawer.classList.add("open");
+4335: 
+4336:     if (type === "room") {
+4337:       drawerTitle.textContent = roomTitle(state.room);
