@@ -12,8 +12,8 @@ game = OUT / "app" / "src" / "main" / "assets" / "game" / "game.js"
 text = game.read_text(encoding="utf-8")
 
 # Keep the existing reset logic, but make the reset itself fully clean for repeated parser testing.
-old_reset = '''      if (confirm("Reset this prototype and erase its local save?")) {\n        state = initialState();\n        saveState();\n        closeDrawer();\n        renderRoom();\n      }\n'''
-new_reset = '''      if (confirm("Reset this prototype and erase its local save?")) {\n        state = initialState();\n        history = [];\n        historyIndex = 0;\n        saveState();\n        closeDrawer();\n        renderRoom();\n        input.value = "";\n        input.focus();\n      }\n'''
+old_reset = '''      if (confirm("Reset this prototype and erase its local save?")) {\n          state = initialState();\n          saveState();\n          closeDrawer();\n          renderRoom();\n        }\n'''
+new_reset = '''      if (confirm("Reset this prototype and erase its local save?")) {\n          state = initialState();\n          history = [];\n          historyIndex = 0;\n          saveState();\n          closeDrawer();\n          renderRoom();\n          input.value = "";\n          input.focus();\n        }\n'''
 if old_reset not in text:
     raise SystemExit("Reset prototype handler anchor missing")
 text = text.replace(old_reset, new_reset, 1)
