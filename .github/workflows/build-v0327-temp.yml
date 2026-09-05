@@ -34,7 +34,7 @@ jobs:
           gradle-version: "8.11.1"
 
       - name: Generate exact v0.3.27 project
-        run: python3 tools/build_exact_v0327.py
+        run: python3 tools/build_exact_v0327_fixed.py
 
       - name: Verify current parser layers and v0.3.27 corrections
         run: |
